@@ -83,7 +83,6 @@ def serve(
     if creds is not None:
         server.add_secure_port(address, creds)
 
-    # TODO(negz): Does this override add_secure_port?
     if insecure:
         server.add_insecure_port(address)
 
