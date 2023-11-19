@@ -68,7 +68,7 @@ jobs:
       - name: Setup Hatch
         run: pipx install hatch==1.7.0
 
-      - name: Run Unit Tests
+      - name: Build Sdist and Wheel
         run: hatch build
 
       - name: Upload Sdist and Wheel to GitHub
