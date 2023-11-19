@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: PyPI module version (e.g. v0.1.0)
+        required: false
+
+env:
+  # Common versions
+  PYTHON_VERSION: '3.11.5'
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Hatch
+        run: pipx install hatch==1.7.0
+
+      - name: Lint
+        run: |
+          hatch run lint:check-format
+          hatch run lint:check
+
+  unit-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Hatch
+        run: pipx install hatch==1.7.0
+
+      - name: Run Unit Tests
+        run: hatch run test:unit
+
+
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Hatch
+        run: pipx install hatch==1.7.0
+
+      - name: Run Unit Tests
+        run: hatch build
+
+      - name: Upload Sdist and Wheel to GitHub
+        uses: actions/upload-artifact@v3
+        with:
+          name: module
+          path: "dist/*"
+          if-no-files-found: error
+          retention-days: 1

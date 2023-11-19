@@ -1,0 +1,109 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "function-sdk-python"
+description = 'The Python SDK for Crossplane composition functions'
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+keywords = []
+authors = [{ name = "Crossplane Maintainers", email = "info@crossplane.io" }]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+  "click==8.*",
+  "grpcio==1.*",
+  "grpcio-reflection==1.*",
+  "structlog==23.*",
+]
+
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://github.com/crossplane/function-sdk-python#readme"
+Issues = "https://github.com/crossplane/function-sdk-python/issues"
+Source = "https://github.com/crossplane/function-sdk-python"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv-default"
+dependencies = ["ipython==8.17.2"]
+
+[tool.hatch.envs.generate]
+type = "virtual"
+detached = true
+path = ".venv-generate"
+dependencies = ["grpcio-tools==1.59.2"]
+
+[tool.hatch.envs.generate.scripts]
+protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto"
+
+[tool.hatch.envs.lint]
+type = "virtual"
+detached = true
+path = ".venv-lint"
+dependencies = ["ruff==0.1.6"]
+
+[tool.hatch.envs.lint.scripts]
+check = "ruff check crossplane tests"
+check-format = "ruff format --diff crossplane tests"
+
+[tool.hatch.envs.test]
+type = "virtual"
+path = ".venv-test"
+
+[tool.hatch.envs.test.scripts]
+unit = "python -m unittest tests/*.py"
+
+[tool.ruff]
+target-version = "py311"
+exclude = ["crossplane/function/proto/*"]
+select = [
+  "A",
+  "ARG",
+  "ASYNC",
+  "B",
+  "C",
+  "D",
+  "DTZ",
+  "E",
+  "EM",
+  "ERA",
+  "F",
+  "FBT",
+  "I",
+  "ICN",
+  "ISC",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+ignore = ["ISC001"] # Ruff warns this is incompatible with ruff format.
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"] # Don't require docstrings for tests.
+
+[tool.ruff.isort]
+known-first-party = ["function"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
