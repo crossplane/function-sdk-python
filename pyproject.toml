@@ -53,8 +53,7 @@ path = ".venv-lint"
 dependencies = ["ruff==0.1.6"]
 
 [tool.hatch.envs.lint.scripts]
-check = "ruff check crossplane tests"
-check-format = "ruff format --diff crossplane tests"
+check = "ruff check crossplane tests && ruff format --diff crossplane tests"
 
 [tool.hatch.envs.test]
 type = "virtual"

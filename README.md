@@ -29,14 +29,13 @@ Some useful commands:
 # Generate gRPC stubs.
 hatch run generate:protoc
 
-# Lint the code, using ruff.
+# Lint the code.
 hatch run lint:check
-hatch run lint:check-format
 
 # Run unit tests.
 hatch run test:unit
 
-# Build an sdist and wheel
+# Build an sdist and wheel.
 hatch build
 ```
 
