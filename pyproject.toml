@@ -103,7 +103,7 @@ ignore = ["ISC001"] # Ruff warns this is incompatible with ruff format.
 "tests/*" = ["D"] # Don't require docstrings for tests.
 
 [tool.ruff.isort]
-known-first-party = ["function"]
+known-first-party = ["crossplane"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
