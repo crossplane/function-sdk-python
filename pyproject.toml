@@ -17,7 +17,6 @@ classifiers = [
 ]
 
 dependencies = [
-  "click==8.*",
   "grpcio==1.*",
   "grpcio-reflection==1.*",
   "structlog==23.*",
