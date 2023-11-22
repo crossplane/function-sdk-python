@@ -33,3 +33,33 @@ def to(
         desired=req.desired,
         context=req.context,
     )
+
+
+def normal(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+    """Add a normal result to the response."""
+    rsp.results.append(
+        fnv1beta1.Result(
+            severity=fnv1beta1.SEVERITY_NORMAL,
+            message=message,
+        )
+    )
+
+
+def warning(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+    """Add a warning result to the response."""
+    rsp.results.append(
+        fnv1beta1.Result(
+            severity=fnv1beta1.SEVERITY_WARNING,
+            message=message,
+        )
+    )
+
+
+def fatal(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+    """Add a fatal result to the response."""
+    rsp.results.append(
+        fnv1beta1.Result(
+            severity=fnv1beta1.SEVERITY_FATAL,
+            message=message,
+        )
+    )
