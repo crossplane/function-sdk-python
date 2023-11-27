@@ -35,7 +35,7 @@ source = "vcs"
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv-default"
-dependencies = ["ipython==8.18.0"]
+dependencies = ["ipython==8.18.1"]
 
 [tool.hatch.envs.generate]
 type = "virtual"
