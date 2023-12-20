@@ -62,6 +62,9 @@ path = ".venv-test"
 [tool.hatch.envs.test.scripts]
 unit = "python -m unittest tests/*.py"
 
+[tool.hatch.build.targets.wheel]
+packages = ["crossplane"]
+
 [tool.ruff]
 target-version = "py311"
 exclude = ["crossplane/function/proto/*"]
