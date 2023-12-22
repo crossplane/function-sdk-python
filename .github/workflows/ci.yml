@@ -70,7 +70,7 @@ jobs:
         run: hatch build
 
       - name: Upload Sdist and Wheel to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: module
           path: "dist/*"
