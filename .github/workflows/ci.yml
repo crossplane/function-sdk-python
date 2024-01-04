@@ -9,12 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: PyPI module version (e.g. v0.1.0)
+        description: PyPI project version (e.g. v0.1.0)
         required: false
 
 env:
   # Common versions
   PYTHON_VERSION: '3.11.5'
+
+  # The PyPi project version to push. The default is v0.0.0+gitdate-gitsha.
+  PYPI_VERSION: ${{ inputs.version }}
 
 jobs:
   lint:
@@ -66,6 +69,17 @@ jobs:
       - name: Setup Hatch
         run: pipx install hatch==1.7.0
 
+      # If a version wasn't explicitly passed as a workflow_dispatch input we
+      # default to version v0.0.0+<git-commit-date>-<git-short-sha>, for example
+      # v0.0.0+20231101115142-1091066df799. This is a simple implementation of
+      # Go's pseudo-versions: https://go.dev/ref/mod#pseudo-versions.
+      - name: Set Default PyPI Project Version
+        if: env.PYPI_VERSION == ''
+        run: echo "PYPI_VERSION=v0.0.0+$(date -d@$(git show -s --format=%ct) +%Y%m%d%H%M%S)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
+
+      - name: Set PyPI Project Version
+        run: hatch version ${{ env.PYPI_VERSION }}
+
       - name: Build Sdist and Wheel
         run: hatch build
 
@@ -76,3 +90,24 @@ jobs:
           path: "dist/*"
           if-no-files-found: error
           retention-days: 1
+
+
+  publish:
+    # Don't publish unless we were run with an explicit version.
+    if: ${{ inputs.version != '' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download Sdist and Wheel from GitHub
+        uses: actions/download-artifact@v4
+        with:
+          name: module
+          path: "dist"
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.11
+        with:
+          # Note that this is currently being pushed to the 'crossplane' PyPI
+          # user (not org). See @negz if you need access - PyPI requires 2FA to
+          # be enabled, which makes sharing the account hard. We're waiting for
+          # a crossplane org to be approved.
+          password: ${{ secrets.PYPI_API_TOKEN }}
