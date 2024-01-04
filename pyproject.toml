@@ -1,9 +1,9 @@
 [build-system]
-requires = ["hatchling", "hatch-semver"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "function-sdk-python"
+name = "crossplane-function-sdk-python"
 description = 'The Python SDK for Crossplane composition functions'
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,8 +31,7 @@ Source = "https://github.com/crossplane/function-sdk-python"
 
 [tool.hatch.version]
 path = "crossplane/function/__version__.py"
-scheme = "semver"
-validate-bump = false # Allow going from 0.0.0-x to 0.0.0-y.
+validate-bump = false # Allow going from 0.0.0.dev0+x to 0.0.0.dev0+y.
 
 [tool.hatch.envs.default]
 type = "virtual"

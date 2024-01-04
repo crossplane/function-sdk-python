@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: PyPI project version (e.g. 0.1.0 - no 'v')
+        description: PyPI project version (e.g. v0.1.0)
         required: false
 
 env:
   # Common versions
   PYTHON_VERSION: '3.11.5'
 
-  # The PyPi project version to push. The default is 0.0.0-gitdate-gitsha.
+  # The PyPi project version to push. The default is v0.0.0+gitdate-gitsha.
   PYPI_VERSION: ${{ inputs.version }}
 
 jobs:
@@ -70,12 +70,12 @@ jobs:
         run: pipx install hatch==1.7.0
 
       # If a version wasn't explicitly passed as a workflow_dispatch input we
-      # default to version v0.0.0-<git-commit-date>-<git-short-sha>, for example
-      # v0.0.0-20231101115142-1091066df799. This is a simple implementation of
+      # default to version v0.0.0+<git-commit-date>-<git-short-sha>, for example
+      # v0.0.0+20231101115142-1091066df799. This is a simple implementation of
       # Go's pseudo-versions: https://go.dev/ref/mod#pseudo-versions.
       - name: Set Default PyPI Project Version
         if: env.PYPI_VERSION == ''
-        run: echo "PYPI_VERSION=0.0.0-$(date -d@$(git show -s --format=%ct) +%Y%m%d%H%M%S)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
+        run: echo "PYPI_VERSION=v0.0.0+$(date -d@$(git show -s --format=%ct) +%Y%m%d%H%M%S)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
 
       - name: Set PyPI Project Version
         run: hatch version ${{ env.PYPI_VERSION }}
