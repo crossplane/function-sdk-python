@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling", "hatch-semver"]
 build-backend = "hatchling.build"
 
 [project]
@@ -30,7 +30,9 @@ Issues = "https://github.com/crossplane/function-sdk-python/issues"
 Source = "https://github.com/crossplane/function-sdk-python"
 
 [tool.hatch.version]
-source = "vcs"
+path = "crossplane/function/__version__.py"
+scheme = "semver"
+validate-bump = false # Allow going from 0.0.0-x to 0.0.0-y.
 
 [tool.hatch.envs.default]
 type = "virtual"
