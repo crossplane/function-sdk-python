@@ -16,11 +16,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
 ]
 
-dependencies = [
-  "grpcio==1.*",
-  "grpcio-reflection==1.*",
-  "structlog==23.*",
-]
+dependencies = ["grpcio==1.*", "grpcio-reflection==1.*", "structlog==23.*"]
 
 dynamic = ["version"]
 
@@ -31,7 +27,7 @@ Source = "https://github.com/crossplane/function-sdk-python"
 
 [tool.hatch.version]
 path = "crossplane/function/__version__.py"
-validate-bump = false # Allow going from 0.0.0.dev0+x to 0.0.0.dev0+y.
+validate-bump = false                       # Allow going from 0.0.0.dev0+x to 0.0.0.dev0+y.
 
 [tool.hatch.envs.default]
 type = "virtual"
@@ -62,6 +58,14 @@ path = ".venv-test"
 
 [tool.hatch.envs.test.scripts]
 unit = "python -m unittest tests/*.py"
+
+[tool.hatch.envs.docs]
+type = "virtual"
+path = ".venv-docs"
+dependencies = ["pdoc"]
+
+[tool.hatch.envs.docs.scripts]
+generate = "pdoc -m google crossplane/function -o docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["crossplane"]
