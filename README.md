@@ -1,6 +1,5 @@
 # function-sdk-python
-[![CI](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml/badge.svg)](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml)
-![GitHub release (latest SemVer)](https://img.shields.io/github/release/crossplane/function-sdk-python) ![PyPI - Version](https://img.shields.io/pypi/v/crossplane-function-sdk-python)
+[![CI](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml/badge.svg)](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml) [![GitHub release (latest SemVer)](https://img.shields.io/github/release/crossplane/function-sdk-python)](https://github.com/crossplane/function-sdk-python/releases) [![PyPI - Version](https://img.shields.io/pypi/v/crossplane-function-sdk-python)](https://pypi.org/project/crossplane-function-sdk-python/)
 
 
 The [Python][python] SDK for writing [composition functions][functions].
