@@ -1,5 +1,7 @@
 # function-sdk-python
-[![CI](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml/badge.svg)](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml) ![GitHub release (latest SemVer)](https://img.shields.io/github/release/crossplane/function-sdk-python)
+[![CI](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml/badge.svg)](https://github.com/crossplane/function-sdk-python/actions/workflows/ci.yml)
+![GitHub release (latest SemVer)](https://img.shields.io/github/release/crossplane/function-sdk-python) ![PyPI - Version](https://img.shields.io/pypi/v/crossplane-function-sdk-python)
+
 
 The [Python][python] SDK for writing [composition functions][functions].
 
@@ -17,6 +19,9 @@ are generated from a proto3 protocol buffer schema. Their fields behave
 similarly to built-in Python types like lists and dictionaries, but there are
 some differences. Read the generated code documentation to familiarize yourself
 with the the differences.
+
+If you just want to jump in and get started, consider using the
+[function-template-python] template repository.
 
 ## Contributing
 
@@ -42,5 +47,6 @@ hatch build
 [python]: https://python.org
 [functions]: https://docs.crossplane.io/latest/concepts/composition-functions
 [python-protobuf]: https://protobuf.dev/reference/python/python-generated/
+[function-template-python]: https://github.com/crossplane/function-template-python
 [contributing guidelines]: https://github.com/crossplane/crossplane/tree/master/contributing
 [hatch]: https://github.com/pypa/hatch
