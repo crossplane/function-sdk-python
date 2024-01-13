@@ -38,16 +38,16 @@ dependencies = ["ipython==8.20.0"]
 type = "virtual"
 detached = true
 path = ".venv-generate"
-dependencies = ["grpcio-tools==1.60.0"]
+dependencies = ["grpcio-tools==1.60.0", "mypy-protobuf==3.5.0"]
 
 [tool.hatch.envs.generate.scripts]
-protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto"
+protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --mypy_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto"
 
 [tool.hatch.envs.lint]
 type = "virtual"
 detached = true
 path = ".venv-lint"
-dependencies = ["ruff==0.1.13"]
+dependencies = ["ruff==0.1.11"]
 
 [tool.hatch.envs.lint.scripts]
 check = "ruff check crossplane tests && ruff format --diff crossplane tests"
@@ -65,7 +65,7 @@ path = ".venv-docs"
 dependencies = ["pdoc"]
 
 [tool.hatch.envs.docs.scripts]
-generate = "pdoc -m google crossplane/function -o docs"
+generate = "pdoc -d google crossplane/function -o docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["crossplane"]
