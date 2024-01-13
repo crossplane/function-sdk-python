@@ -10,14 +10,15 @@ guidelines] as Crossplane.
 
 To learn how to use this SDK:
 
+* [Follow the guide to writing a composition function in Python][function guide]
 * [Learn about how composition functions work][functions]
-* [Learn about Python code generated from protocol buffers][python-protobuf]
+* [Read the package documentation][package docs]
 
 The `RunFunctionRequest` and `RunFunctionResponse` types provided by this SDK
 are generated from a proto3 protocol buffer schema. Their fields behave
 similarly to built-in Python types like lists and dictionaries, but there are
-some differences. Read the generated code documentation to familiarize yourself
-with the the differences.
+some differences. Read the [generated code documentation][python-protobuf] to
+familiarize yourself with the the differences.
 
 If you just want to jump in and get started, consider using the
 [function-template-python] template repository.
@@ -47,5 +48,7 @@ hatch build
 [functions]: https://docs.crossplane.io/latest/concepts/composition-functions
 [python-protobuf]: https://protobuf.dev/reference/python/python-generated/
 [function-template-python]: https://github.com/crossplane/function-template-python
+[function guide]: https://docs.crossplane.io/knowledge-base/guides/write-a-composition-function-in-python
+[package docs]: https://crossplane.github.io/function-sdk-python
 [contributing guidelines]: https://github.com/crossplane/crossplane/tree/master/contributing
 [hatch]: https://github.com/pypa/hatch
