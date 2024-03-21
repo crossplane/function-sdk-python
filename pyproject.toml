@@ -47,7 +47,7 @@ protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. 
 type = "virtual"
 detached = true
 path = ".venv-lint"
-dependencies = ["ruff==0.3.2"]
+dependencies = ["ruff==0.3.4"]
 
 [tool.hatch.envs.lint.scripts]
 check = "ruff check crossplane tests && ruff format --diff crossplane tests"
