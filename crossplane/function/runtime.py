@@ -82,6 +82,9 @@ def serve(
     If insecure is true requests will be served insecurely, even if credentials
     are supplied.
     """
+    # Define the loop before the server so everything uses the same loop.
+    loop = asyncio.get_event_loop()
+
     server = grpc.aio.server()
 
     grpcv1beta1.add_FunctionRunnerServiceServicer_to_server(function, server)
@@ -104,7 +107,6 @@ def serve(
         await server.start()
         await server.wait_for_termination()
 
-    loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(start())
     finally:

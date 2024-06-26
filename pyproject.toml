@@ -73,7 +73,7 @@ packages = ["crossplane"]
 [tool.ruff]
 target-version = "py311"
 exclude = ["crossplane/function/proto/*"]
-select = [
+lint.select = [
   "A",
   "ARG",
   "ASYNC",
@@ -103,12 +103,12 @@ select = [
   "W",
   "YTT",
 ]
-ignore = ["ISC001"] # Ruff warns this is incompatible with ruff format.
+lint.ignore = ["ISC001"] # Ruff warns this is incompatible with ruff format.
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"] # Don't require docstrings for tests.
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["crossplane"]
 
 [tool.ruff.lint.pydocstyle]
