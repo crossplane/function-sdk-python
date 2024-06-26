@@ -29,7 +29,7 @@ SEVERITY_WARNING: Severity
 SEVERITY_NORMAL: Severity
 
 class RunFunctionRequest(_message.Message):
-    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources")
+    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials")
     class ExtraResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -37,19 +37,47 @@ class RunFunctionRequest(_message.Message):
         key: str
         value: Resources
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Resources, _Mapping]] = ...) -> None: ...
+    class CredentialsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: Credentials
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Credentials, _Mapping]] = ...) -> None: ...
     META_FIELD_NUMBER: _ClassVar[int]
     OBSERVED_FIELD_NUMBER: _ClassVar[int]
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     INPUT_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
     EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
     meta: RequestMeta
     observed: State
     desired: State
     input: _struct_pb2.Struct
     context: _struct_pb2.Struct
     extra_resources: _containers.MessageMap[str, Resources]
-    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ...) -> None: ...
+    credentials: _containers.MessageMap[str, Credentials]
+    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ...) -> None: ...
+
+class Credentials(_message.Message):
+    __slots__ = ("credential_data",)
+    CREDENTIAL_DATA_FIELD_NUMBER: _ClassVar[int]
+    credential_data: CredentialData
+    def __init__(self, credential_data: _Optional[_Union[CredentialData, _Mapping]] = ...) -> None: ...
+
+class CredentialData(_message.Message):
+    __slots__ = ("data",)
+    class DataEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: bytes
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    data: _containers.ScalarMap[str, bytes]
+    def __init__(self, data: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
 
 class Resources(_message.Message):
     __slots__ = ("items",)

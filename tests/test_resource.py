@@ -122,6 +122,49 @@ class TestResource(unittest.TestCase):
                 dataclasses.asdict(case.want), dataclasses.asdict(got), "-want, +got"
             )
 
+    def test_get_credentials(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: structpb.Struct
+            name: str
+            want: resource.Credentials
+
+        cases = [
+            TestCase(
+                reason="Return the specified credentials if they exist.",
+                req=resource.dict_to_struct(
+                    {"credentials": {"test": {"type": "data", "data": {"foo": "bar"}}}}
+                ),
+                name="test",
+                want=resource.Credentials(type="data", data={"foo": "bar"}),
+            ),
+            TestCase(
+                reason="Return empty credentials if no credentials section exists.",
+                req=resource.dict_to_struct({}),
+                name="test",
+                want=resource.Credentials(type="data", data={}),
+            ),
+            TestCase(
+                reason="Return empty credentials if the specified name does not exist.",
+                req=resource.dict_to_struct(
+                    {
+                        "credentials": {
+                            "nottest": {"type": "data", "data": {"foo": "bar"}}
+                        }
+                    }
+                ),
+                name="test",
+                want=resource.Credentials(type="data", data={}),
+            ),
+        ]
+
+        for case in cases:
+            got = resource.get_credentials(case.req, case.name)
+            self.assertEqual(
+                dataclasses.asdict(case.want), dataclasses.asdict(got), "-want, +got"
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
