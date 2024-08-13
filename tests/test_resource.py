@@ -165,6 +165,43 @@ class TestResource(unittest.TestCase):
                 dataclasses.asdict(case.want), dataclasses.asdict(got), "-want, +got"
             )
 
+    def test_struct_to_dict(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            s: structpb.Struct
+            want: dict
+
+        cases = [
+            TestCase(
+                reason="Convert a struct with no fields to an empty dictionary.",
+                s=structpb.Struct(),
+                want={},
+            ),
+            TestCase(
+                reason="Convert a struct with a single field to a dictionary.",
+                s=structpb.Struct(fields={"foo": structpb.Value(string_value="bar")}),
+                want={"foo": "bar"},
+            ),
+            TestCase(
+                reason="Convert a nested struct to a dictionary.",
+                s=structpb.Struct(
+                    fields={
+                        "foo": structpb.Value(
+                            struct_value=structpb.Struct(
+                                fields={"bar": structpb.Value(string_value="baz")}
+                            )
+                        )
+                    }
+                ),
+                want={"foo": {"bar": "baz"}},
+            ),
+        ]
+
+        for case in cases:
+            got = resource.struct_to_dict(case.s)
+            self.assertEqual(case.want, got, "-want, +got")
+
 
 if __name__ == "__main__":
     unittest.main()
