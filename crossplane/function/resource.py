@@ -42,7 +42,10 @@ def struct_to_dict(s: structpb.Struct) -> dict:
     protobuf struct. This function makes it possible to convert resources to a
     dictionary.
     """
-    return dict(s)
+    return {
+        k: (struct_to_dict(v) if isinstance(v, structpb.Struct) else v)
+        for k, v in s.items()
+    }
 
 
 @dataclasses.dataclass
