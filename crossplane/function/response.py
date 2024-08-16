@@ -18,16 +18,16 @@ import datetime
 
 from google.protobuf import duration_pb2 as durationpb
 
-import crossplane.function.proto.v1beta1.run_function_pb2 as fnv1beta1
+import crossplane.function.proto.v1.run_function_pb2 as fnv1
 
 """The default TTL for which a RunFunctionResponse may be cached."""
 DEFAULT_TTL = datetime.timedelta(minutes=1)
 
 
 def to(
-    req: fnv1beta1.RunFunctionRequest,
+    req: fnv1.RunFunctionRequest,
     ttl: datetime.timedelta = DEFAULT_TTL,
-) -> fnv1beta1.RunFunctionResponse:
+) -> fnv1.RunFunctionResponse:
     """Create a response to the supplied request.
 
     Args:
@@ -42,38 +42,38 @@ def to(
     """
     dttl = durationpb.Duration()
     dttl.FromTimedelta(ttl)
-    return fnv1beta1.RunFunctionResponse(
-        meta=fnv1beta1.ResponseMeta(tag=req.meta.tag, ttl=dttl),
+    return fnv1.RunFunctionResponse(
+        meta=fnv1.ResponseMeta(tag=req.meta.tag, ttl=dttl),
         desired=req.desired,
         context=req.context,
     )
 
 
-def normal(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+def normal(rsp: fnv1.RunFunctionResponse, message: str) -> None:
     """Add a normal result to the response."""
     rsp.results.append(
-        fnv1beta1.Result(
-            severity=fnv1beta1.SEVERITY_NORMAL,
+        fnv1.Result(
+            severity=fnv1.SEVERITY_NORMAL,
             message=message,
         )
     )
 
 
-def warning(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+def warning(rsp: fnv1.RunFunctionResponse, message: str) -> None:
     """Add a warning result to the response."""
     rsp.results.append(
-        fnv1beta1.Result(
-            severity=fnv1beta1.SEVERITY_WARNING,
+        fnv1.Result(
+            severity=fnv1.SEVERITY_WARNING,
             message=message,
         )
     )
 
 
-def fatal(rsp: fnv1beta1.RunFunctionResponse, message: str) -> None:
+def fatal(rsp: fnv1.RunFunctionResponse, message: str) -> None:
     """Add a fatal result to the response."""
     rsp.results.append(
-        fnv1beta1.Result(
-            severity=fnv1beta1.SEVERITY_FATAL,
+        fnv1.Result(
+            severity=fnv1.SEVERITY_FATAL,
             message=message,
         )
     )
