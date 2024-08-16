@@ -41,7 +41,7 @@ path = ".venv-generate"
 dependencies = ["grpcio-tools==1.65.4"]
 
 [tool.hatch.envs.generate.scripts]
-protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto"
+protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto crossplane/function/proto/v1/run_function.proto"
 
 [tool.hatch.envs.lint]
 type = "virtual"
@@ -50,7 +50,8 @@ path = ".venv-lint"
 dependencies = ["ruff==0.6.1"]
 
 [tool.hatch.envs.lint.scripts]
-check = "ruff check crossplane tests && ruff format --diff crossplane tests"
+check = "ruff format crossplane tests && ruff check --fix crossplane tests"
+
 
 [tool.hatch.envs.test]
 type = "virtual"

@@ -20,11 +20,14 @@ import os
 import grpc
 from grpc_reflection.v1alpha import reflection
 
+import crossplane.function.proto.v1.run_function_pb2 as fnv1
+import crossplane.function.proto.v1.run_function_pb2_grpc as grpcv1
 import crossplane.function.proto.v1beta1.run_function_pb2 as fnv1beta1
 import crossplane.function.proto.v1beta1.run_function_pb2_grpc as grpcv1beta1
 
 SERVICE_NAMES = (
     reflection.SERVICE_NAME,
+    fnv1.DESCRIPTOR.services_by_name["FunctionRunnerService"].full_name,
     fnv1beta1.DESCRIPTOR.services_by_name["FunctionRunnerService"].full_name,
 )
 
@@ -62,7 +65,7 @@ def load_credentials(tls_certs_dir: str) -> grpc.ServerCredentials:
 
 
 def serve(
-    function: grpcv1beta1.FunctionRunnerService,
+    function: grpcv1.FunctionRunnerService,
     address: str,
     *,
     creds: grpc.ServerCredentials,
@@ -87,7 +90,10 @@ def serve(
 
     server = grpc.aio.server()
 
-    grpcv1beta1.add_FunctionRunnerServiceServicer_to_server(function, server)
+    grpcv1.add_FunctionRunnerServiceServicer_to_server(function, server)
+    grpcv1beta1.add_FunctionRunnerServiceServicer_to_server(
+        BetaFunctionRunner(wrapped=function), server
+    )
     reflection.enable_server_reflection(SERVICE_NAMES, server)
 
     if creds is None and insecure is False:
@@ -112,3 +118,30 @@ def serve(
     finally:
         loop.run_until_complete(server.stop(grace=5))
         loop.close()
+
+
+class BetaFunctionRunner(grpcv1beta1.FunctionRunnerService):
+    """A BetaFunctionRunner handles beta gRPC RunFunctionRequests.
+
+    It handles requests by passing them to a wrapped v1.FunctionRunnerService.
+    Incoming v1beta1 requests are converted to v1 by round-tripping them through
+    serialization. Outgoing requests are converted from v1 to v1beta1 the same
+    way.
+    """
+
+    def __init__(self, wrapped: grpcv1.FunctionRunnerService):
+        """Create a new BetaFunctionRunner."""
+        self.wrapped = wrapped
+
+    async def RunFunction(  # noqa: N802  # gRPC requires this name.
+        self, req: fnv1beta1.RunFunctionRequest, context: grpc.aio.ServicerContext
+    ) -> fnv1beta1.RunFunctionResponse:
+        """Run the underlying function."""
+        gareq = fnv1.RunFunctionRequest()
+        gareq.ParseFromString(req.SerializeToString())
+
+        garsp = await self.wrapped.RunFunction(gareq, context)
+        rsp = fnv1beta1.RunFunctionRequest()
+        rsp.ParseFromString(garsp.SerializeToString())
+
+        return rsp
