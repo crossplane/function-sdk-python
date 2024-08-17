@@ -141,7 +141,7 @@ class BetaFunctionRunner(grpcv1beta1.FunctionRunnerService):
         gareq.ParseFromString(req.SerializeToString())
 
         garsp = await self.wrapped.RunFunction(gareq, context)
-        rsp = fnv1beta1.RunFunctionRequest()
+        rsp = fnv1beta1.RunFunctionResponse()
         rsp.ParseFromString(garsp.SerializeToString())
 
         return rsp
