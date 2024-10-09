@@ -16,14 +16,94 @@ import dataclasses
 import datetime
 import unittest
 
+import pydantic
+from google.protobuf import json_format
 from google.protobuf import struct_pb2 as structpb
 
+import crossplane.function.proto.v1.run_function_pb2 as fnv1
 from crossplane.function import logging, resource
+
+from .testdata.models.io.upbound.aws.s3 import v1beta2
 
 
 class TestResource(unittest.TestCase):
     def setUp(self) -> None:
         logging.configure(level=logging.Level.DISABLED)
+
+    def test_add(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            r: fnv1.Resource
+            source: dict | structpb.Struct | pydantic.BaseModel
+            want: fnv1.Resource
+
+        cases = [
+            TestCase(
+                reason="Updating from a dict should work.",
+                r=fnv1.Resource(),
+                source={"apiVersion": "example.org", "kind": "Resource"},
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "Resource"}
+                    ),
+                ),
+            ),
+            TestCase(
+                reason="Updating an existing resource from a dict should work.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "Resource"}
+                    ),
+                ),
+                source={
+                    "metadata": {"name": "cool"},
+                },
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "apiVersion": "example.org",
+                            "kind": "Resource",
+                            "metadata": {"name": "cool"},
+                        }
+                    ),
+                ),
+            ),
+            TestCase(
+                reason="Updating from a struct should work.",
+                r=fnv1.Resource(),
+                source=resource.dict_to_struct(
+                    {"apiVersion": "example.org", "kind": "Resource"}
+                ),
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "Resource"}
+                    ),
+                ),
+            ),
+            TestCase(
+                reason="Updating from a Pydantic model should work.",
+                r=fnv1.Resource(),
+                source=v1beta2.Bucket(
+                    spec=v1beta2.Spec(
+                        forProvider=v1beta2.ForProvider(region="us-west-2"),
+                    ),
+                ),
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"spec": {"forProvider": {"region": "us-west-2"}}}
+                    ),
+                ),
+            ),
+        ]
+
+        for case in cases:
+            resource.update(case.r, case.source)
+            self.assertEqual(
+                json_format.MessageToDict(case.want),
+                json_format.MessageToDict(case.r),
+                "-want, +got",
+            )
 
     def test_get_condition(self) -> None:
         @dataclasses.dataclass

@@ -16,7 +16,13 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
 ]
 
-dependencies = ["grpcio==1.*", "grpcio-reflection==1.*", "protobuf==5.27.2", "structlog==24.*"]
+dependencies = [
+  "grpcio==1.*",
+  "grpcio-reflection==1.*",
+  "protobuf==5.27.2",
+  "pydantic==2.*",
+  "structlog==24.*",
+]
 
 dynamic = ["version"]
 

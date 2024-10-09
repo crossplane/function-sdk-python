@@ -17,10 +17,39 @@
 import dataclasses
 import datetime
 
+import pydantic
 from google.protobuf import struct_pb2 as structpb
+
+import crossplane.function.proto.v1.run_function_pb2 as fnv1
 
 # TODO(negz): Do we really need dict_to_struct and struct_to_dict? They don't do
 # much, but are perhaps useful for discoverability/"documentation" purposes.
+
+
+def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel):
+    """Update a composite or composed resource.
+
+    Use update to add or update the supplied resource. If the resource doesn't
+    exist, it'll be added. If the resource does exist, it'll be updated. The
+    update method semantics are the same as a dictionary's update method. Fields
+    that don't exist will be added. Fields that exist will be overwritten.
+
+    The source can be a dictionary, a protobuf Struct, or a Pydantic model.
+    """
+    # If the resource has a model_dump attribute it's a Pydantic BaseModel.
+    if hasattr(source, "model_dump"):
+        r.resource.update(source.model_dump(exclude_defaults=True, warnings=False))
+        return
+
+    # If the resource has a get_or_create_struct attribute it's a Struct.
+    if hasattr(source, "get_or_create_struct"):
+        # TODO(negz): Use struct_to_dict and update to match other semantics?
+        r.resource.MergeFrom(source)
+        return
+
+    # If it has neither, it must be a dictionary.
+    r.resource.update(source)
+    return
 
 
 def dict_to_struct(d: dict) -> structpb.Struct:
