@@ -79,7 +79,7 @@ packages = ["crossplane"]
 
 [tool.ruff]
 target-version = "py311"
-exclude = ["crossplane/function/proto/*"]
+exclude = ["crossplane/function/proto/*", "tests/testdata/*"]
 lint.select = [
   "A",
   "ARG",
