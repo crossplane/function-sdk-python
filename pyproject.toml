@@ -49,23 +49,6 @@ dependencies = ["grpcio-tools==1.66.2"]
 [tool.hatch.envs.generate.scripts]
 protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto crossplane/function/proto/v1/run_function.proto"
 
-[tool.hatch.envs.lint]
-type = "virtual"
-detached = true
-path = ".venv-lint"
-dependencies = ["ruff==0.6.9"]
-
-[tool.hatch.envs.lint.scripts]
-check = "ruff format crossplane tests && ruff check --fix crossplane tests"
-
-
-[tool.hatch.envs.test]
-type = "virtual"
-path = ".venv-test"
-
-[tool.hatch.envs.test.scripts]
-unit = "python -m unittest tests/*.py"
-
 [tool.hatch.envs.docs]
 type = "virtual"
 path = ".venv-docs"
@@ -76,6 +59,11 @@ generate = "pdoc -m google crossplane/function -o docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["crossplane"]
+
+# This special environment is used by hatch fmt.
+[tool.hatch.envs.hatch-static-analysis]
+dependencies = ["ruff==0.6.9"]
+config-path = "none"           # Disable Hatch's default Ruff config.
 
 [tool.ruff]
 target-version = "py311"

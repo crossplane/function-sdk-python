@@ -22,8 +22,7 @@ from google.protobuf import struct_pb2 as structpb
 
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
 from crossplane.function import logging, resource
-
-from .testdata.models.io.upbound.aws.s3 import v1beta2
+from tests.testdata.models.io.upbound.aws.s3 import v1beta2
 
 
 class TestResource(unittest.TestCase):
