@@ -36,20 +36,18 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
 
     The source can be a dictionary, a protobuf Struct, or a Pydantic model.
     """
-    # If the resource has a model_dump attribute it's a Pydantic BaseModel.
-    if hasattr(source, "model_dump"):
-        r.resource.update(source.model_dump(exclude_defaults=True, warnings=False))
-        return
-
-    # If the resource has a get_or_create_struct attribute it's a Struct.
-    if hasattr(source, "get_or_create_struct"):
-        # TODO(negz): Use struct_to_dict and update to match other semantics?
-        r.resource.MergeFrom(source)
-        return
-
-    # If it has neither, it must be a dictionary.
-    r.resource.update(source)
-    return
+    match source:
+        case pydantic.BaseModel():
+            r.resource.update(source.model_dump(exclude_defaults=True, warnings=False))
+        case structpb.Struct():
+            # TODO(negz): Use struct_to_dict and update to match other semantics?
+            r.resource.MergeFrom(source)
+        case dict():
+            r.resource.update(source)
+        case _:
+            t = type(source)
+            msg = f"Unsupported type: {t}"
+            raise TypeError(msg)
 
 
 def dict_to_struct(d: dict) -> structpb.Struct:
