@@ -58,14 +58,6 @@ dependencies = ["ruff==0.6.9"]
 [tool.hatch.envs.lint.scripts]
 check = "ruff format crossplane tests && ruff check --fix crossplane tests"
 
-
-[tool.hatch.envs.test]
-type = "virtual"
-path = ".venv-test"
-
-[tool.hatch.envs.test.scripts]
-unit = "python -m unittest tests/*.py"
-
 [tool.hatch.envs.docs]
 type = "virtual"
 path = ".venv-docs"

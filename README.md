@@ -38,7 +38,7 @@ hatch run generate:protoc
 hatch run lint:check
 
 # Run unit tests.
-hatch run test:unit
+hatch test
 
 # Build an sdist and wheel.
 hatch build

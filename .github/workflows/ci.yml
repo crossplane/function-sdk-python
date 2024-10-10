@@ -28,6 +28,7 @@ concurrency:
 env:
   # Common versions
   PYTHON_VERSION: '3.11.5'
+  HATCH_VERSION: '1.12.0'
 
   # The PyPi project version to push. The default is v0.0.0+gitdate-gitsha.
   PYPI_VERSION: ${{ inputs.version }}
@@ -45,7 +46,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Hatch
-        run: pipx install hatch==1.7.0
+        run: pipx install hatch==${{ env.HATCH_VERSION }}
 
       - name: Lint
         run: hatch run lint:check
@@ -62,10 +63,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Hatch
-        run: pipx install hatch==1.7.0
+        run: pipx install hatch==${{ env.HATCH_VERSION }}
 
       - name: Run Unit Tests
-        run: hatch run test:unit
+        run: hatch test --all --randomize
 
 
   build:
@@ -80,7 +81,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Hatch
-        run: pipx install hatch==1.7.0
+        run: pipx install hatch==${{ env.HATCH_VERSION }}
 
       # If a version wasn't explicitly passed as a workflow_dispatch input we
       # default to version v0.0.0+<git-commit-date>-<git-short-sha>, for example
@@ -143,7 +144,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Hatch
-        run: pipx install hatch==1.7.0
+        run: pipx install hatch==${{ env.HATCH_VERSION }}
 
       - name: Build Documentation
         run: hatch run docs:pdoc -d google crossplane/function -o docs
