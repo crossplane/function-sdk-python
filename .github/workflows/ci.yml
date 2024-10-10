@@ -49,7 +49,7 @@ jobs:
         run: pipx install hatch==${{ env.HATCH_VERSION }}
 
       - name: Lint
-        run: hatch run lint:check
+        run: hatch fmt
 
   unit-test:
     runs-on: ubuntu-22.04

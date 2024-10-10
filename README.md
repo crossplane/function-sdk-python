@@ -34,8 +34,8 @@ Some useful commands:
 # Generate gRPC stubs.
 hatch run generate:protoc
 
-# Lint the code.
-hatch run lint:check
+# Format and lint the code.
+hatch fmt
 
 # Run unit tests.
 hatch test
