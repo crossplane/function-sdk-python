@@ -16,6 +16,7 @@
 
 import dataclasses
 import datetime
+from typing import Any
 
 import pydantic
 from google.protobuf import struct_pb2 as structpb
@@ -62,6 +63,20 @@ def dict_to_struct(d: dict) -> structpb.Struct:
     return s
 
 
+def __to_python_native(v: structpb.Value) -> Any:
+    """Convert a protobuf Value to a Python native type."""
+    if isinstance(v, structpb.ListValue):
+        return __listvalue_to_list(v)
+    elif isinstance(v, structpb.Struct):
+        return struct_to_dict(v)
+    return v
+
+
+def __listvalue_to_list(lv: structpb.ListValue) -> list:
+    """Convert a protobuf ListValue to a list."""
+    return [__to_python_native(v) for v in lv]
+
+
 def struct_to_dict(s: structpb.Struct) -> dict:
     """Create a dict from the supplied Struct well-known type.
 
@@ -69,10 +84,7 @@ def struct_to_dict(s: structpb.Struct) -> dict:
     protobuf struct. This function makes it possible to convert resources to a
     dictionary.
     """
-    return {
-        k: (struct_to_dict(v) if isinstance(v, structpb.Struct) else v)
-        for k, v in s.items()
-    }
+    return {k: __to_python_native(v) for k, v in s.items()}
 
 
 @dataclasses.dataclass
