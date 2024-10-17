@@ -5,7 +5,7 @@ import warnings
 
 from crossplane.function.proto.v1 import run_function_pb2 as crossplane_dot_function_dot_proto_dot_v1_dot_run__function__pb2
 
-GRPC_GENERATED_VERSION = '1.66.0'
+GRPC_GENERATED_VERSION = '1.66.2'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
