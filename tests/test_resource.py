@@ -275,6 +275,28 @@ class TestResource(unittest.TestCase):
                 ),
                 want={"foo": {"bar": "baz"}},
             ),
+            TestCase(
+                reason="Convert a nested struct containing ListValues to a dictionary.",
+                s=structpb.Struct(
+                    fields={
+                        "foo": structpb.Value(
+                            struct_value=structpb.Struct(
+                                fields={
+                                    "bar": structpb.Value(
+                                        list_value=structpb.ListValue(
+                                            values=[
+                                                structpb.Value(string_value="baz"),
+                                                structpb.Value(string_value="qux"),
+                                            ]
+                                        )
+                                    )
+                                }
+                            )
+                        )
+                    }
+                ),
+                want={"foo": {"bar": ["baz", "qux"]}},
+            ),
         ]
 
         for case in cases:
