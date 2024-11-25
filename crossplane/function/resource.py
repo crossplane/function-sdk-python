@@ -58,9 +58,7 @@ def dict_to_struct(d: dict) -> structpb.Struct:
     function makes it possible to work with a Python dict, then convert it to a
     struct in a RunFunctionResponse.
     """
-    s = structpb.Struct()
-    s.update(d)
-    return s
+    return json_format.ParseDict(d, structpb.Struct())
 
 
 def struct_to_dict(s: structpb.Struct) -> dict:
