@@ -75,7 +75,7 @@ def configure(level: Level = Level.INFO) -> None:
             structlog.processors.EventRenamer(to="msg"),
             structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG if level == Level.DEBUG else logging.INFO),
     )
 
 
