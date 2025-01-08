@@ -118,10 +118,10 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
     """
     unknown = Condition(typ=typ, status="Unknown")
 
-    if "status" not in resource:
+    if not resource or "status" not in resource:
         return unknown
 
-    if "conditions" not in resource["status"]:
+    if not resource["status"] or "conditions" not in resource["status"]:
         return unknown
 
     for c in resource["status"]["conditions"]:
@@ -157,9 +157,9 @@ class Credentials:
 def get_credentials(req: structpb.Struct, name: str) -> Credentials:
     """Get the supplied credentials."""
     empty = Credentials(type="data", data={})
-    if "credentials" not in req:
+    if not req or "credentials" not in req:
         return empty
-    if name not in req["credentials"]:
+    if not req["credentials"] or name not in req["credentials"]:
         return empty
     return Credentials(
         type=req["credentials"][name]["type"],
