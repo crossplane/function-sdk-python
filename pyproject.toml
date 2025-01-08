@@ -44,7 +44,7 @@ dependencies = ["ipython==8.29.0"]
 type = "virtual"
 detached = true
 path = ".venv-generate"
-dependencies = ["grpcio-tools==1.67.0"]
+dependencies = ["grpcio-tools==1.69.0"]
 
 [tool.hatch.envs.generate.scripts]
 protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto crossplane/function/proto/v1/run_function.proto"
