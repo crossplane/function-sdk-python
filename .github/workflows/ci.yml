@@ -120,7 +120,7 @@ jobs:
           path: "dist"
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.10.3
+        uses: pypa/gh-action-pypi-publish@v1.12.3
         with:
           # Note that this is currently being pushed to the 'crossplane' PyPI
           # user (not org). See @negz if you need access - PyPI requires 2FA to

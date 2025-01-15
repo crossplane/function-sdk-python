@@ -39,7 +39,15 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
     """
     match source:
         case pydantic.BaseModel():
-            r.resource.update(source.model_dump(exclude_defaults=True, warnings=False))
+            data = source.model_dump(exclude_defaults=True, warnings=False)
+            # In Pydantic, exclude_defaults=True in model_dump excludes fields
+            # that have their value equal to the default. If a field like
+            # apiVersion is set to its default value 's3.aws.upbound.io/v1beta2'
+            # (and not explicitly provided during initialization), it will be
+            # excluded from the serialized output.
+            data['apiVersion'] = source.apiVersion
+            data['kind'] = source.kind
+            r.resource.update(data)
         case structpb.Struct():
             # TODO(negz): Use struct_to_dict and update to match other semantics?
             r.resource.MergeFrom(source)
@@ -106,10 +114,10 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
     """
     unknown = Condition(typ=typ, status="Unknown")
 
-    if "status" not in resource:
+    if not resource or "status" not in resource:
         return unknown
 
-    if "conditions" not in resource["status"]:
+    if not resource["status"] or "conditions" not in resource["status"]:
         return unknown
 
     for c in resource["status"]["conditions"]:
@@ -145,9 +153,9 @@ class Credentials:
 def get_credentials(req: structpb.Struct, name: str) -> Credentials:
     """Get the supplied credentials."""
     empty = Credentials(type="data", data={})
-    if "credentials" not in req:
+    if not req or "credentials" not in req:
         return empty
-    if name not in req["credentials"]:
+    if not req["credentials"] or name not in req["credentials"]:
         return empty
     return Credentials(
         type=req["credentials"][name]["type"],

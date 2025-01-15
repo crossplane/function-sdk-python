@@ -90,7 +90,11 @@ class TestResource(unittest.TestCase):
                 ),
                 want=fnv1.Resource(
                     resource=resource.dict_to_struct(
-                        {"spec": {"forProvider": {"region": "us-west-2"}}}
+                        {
+                            "apiVersion": "s3.aws.upbound.io/v1beta2",
+                            "kind": "Bucket",
+                            "spec": {"forProvider": {"region": "us-west-2"}},
+                        }
                     ),
                 ),
             ),

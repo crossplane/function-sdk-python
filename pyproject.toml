@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
   "grpcio==1.67.0",
   "grpcio-reflection==1.*",
-  "protobuf==5.27.2",
+  "protobuf==5.29.3",
   "pydantic==2.*",
   "structlog==24.*",
 ]
@@ -38,13 +38,13 @@ validate-bump = false                       # Allow going from 0.0.0.dev0+x to 0
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv-default"
-dependencies = ["ipython==8.28.0"]
+dependencies = ["ipython==8.31.0"]
 
 [tool.hatch.envs.generate]
 type = "virtual"
 detached = true
 path = ".venv-generate"
-dependencies = ["grpcio-tools==1.67.0"]
+dependencies = ["grpcio-tools==1.69.0"]
 
 [tool.hatch.envs.generate.scripts]
 protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto crossplane/function/proto/v1/run_function.proto"
@@ -62,7 +62,7 @@ packages = ["crossplane"]
 
 # This special environment is used by hatch fmt.
 [tool.hatch.envs.hatch-static-analysis]
-dependencies = ["ruff==0.6.9"]
+dependencies = ["ruff==0.9.1"]
 config-path = "none"           # Disable Hatch's default Ruff config.
 
 [tool.ruff]
