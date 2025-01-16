@@ -21,7 +21,7 @@ dependencies = [
   "grpcio-reflection==1.*",
   "protobuf==5.29.3",
   "pydantic==2.*",
-  "structlog==24.*",
+  "structlog==25.*",
 ]
 
 dynamic = ["version"]
