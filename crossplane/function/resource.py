@@ -18,6 +18,7 @@ import dataclasses
 import datetime
 
 import pydantic
+from google.protobuf import json_format
 from google.protobuf import struct_pb2 as structpb
 
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
@@ -65,9 +66,7 @@ def dict_to_struct(d: dict) -> structpb.Struct:
     function makes it possible to work with a Python dict, then convert it to a
     struct in a RunFunctionResponse.
     """
-    s = structpb.Struct()
-    s.update(d)
-    return s
+    return json_format.ParseDict(d, structpb.Struct())
 
 
 def struct_to_dict(s: structpb.Struct) -> dict:
@@ -77,10 +76,7 @@ def struct_to_dict(s: structpb.Struct) -> dict:
     protobuf struct. This function makes it possible to convert resources to a
     dictionary.
     """
-    return {
-        k: (struct_to_dict(v) if isinstance(v, structpb.Struct) else v)
-        for k, v in s.items()
-    }
+    return json_format.MessageToDict(s, preserving_proto_field_name=True)
 
 
 @dataclasses.dataclass

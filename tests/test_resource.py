@@ -248,6 +248,66 @@ class TestResource(unittest.TestCase):
                 dataclasses.asdict(case.want), dataclasses.asdict(got), "-want, +got"
             )
 
+    def test_dict_to_struct(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            d: dict
+            want: structpb.Struct
+
+        cases = [
+            TestCase(
+                reason="Convert an empty dictionary to a struct.",
+                d={},
+                want=structpb.Struct(),
+            ),
+            TestCase(
+                reason="Convert a dictionary with a single field to a struct.",
+                d={"foo": "bar"},
+                want=structpb.Struct(
+                    fields={"foo": structpb.Value(string_value="bar")}
+                ),
+            ),
+            TestCase(
+                reason="Convert a nested dictionary to a struct.",
+                d={"foo": {"bar": "baz"}},
+                want=structpb.Struct(
+                    fields={
+                        "foo": structpb.Value(
+                            struct_value=structpb.Struct(
+                                fields={"bar": structpb.Value(string_value="baz")}
+                            )
+                        )
+                    }
+                ),
+            ),
+            TestCase(
+                reason="Convert a nested dictionary containing lists to a struct.",
+                d={"foo": {"bar": ["baz", "qux"]}},
+                want=structpb.Struct(
+                    fields={
+                        "foo": structpb.Value(
+                            struct_value=structpb.Struct(
+                                fields={
+                                    "bar": structpb.Value(
+                                        list_value=structpb.ListValue(
+                                            values=[
+                                                structpb.Value(string_value="baz"),
+                                                structpb.Value(string_value="qux"),
+                                            ]
+                                        )
+                                    )
+                                }
+                            )
+                        )
+                    }
+                ),
+            ),
+        ]
+        for case in cases:
+            got = resource.dict_to_struct(case.d)
+            self.assertEqual(case.want, got, "-want, +got")
+
     def test_struct_to_dict(self) -> None:
         @dataclasses.dataclass
         class TestCase:
@@ -278,6 +338,28 @@ class TestResource(unittest.TestCase):
                     }
                 ),
                 want={"foo": {"bar": "baz"}},
+            ),
+            TestCase(
+                reason="Convert a nested struct containing ListValues to a dictionary.",
+                s=structpb.Struct(
+                    fields={
+                        "foo": structpb.Value(
+                            struct_value=structpb.Struct(
+                                fields={
+                                    "bar": structpb.Value(
+                                        list_value=structpb.ListValue(
+                                            values=[
+                                                structpb.Value(string_value="baz"),
+                                                structpb.Value(string_value="qux"),
+                                            ]
+                                        )
+                                    )
+                                }
+                            )
+                        )
+                    }
+                ),
+                want={"foo": {"bar": ["baz", "qux"]}},
             ),
         ]
 
