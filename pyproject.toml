@@ -62,7 +62,7 @@ packages = ["crossplane"]
 
 # This special environment is used by hatch fmt.
 [tool.hatch.envs.hatch-static-analysis]
-dependencies = ["ruff==0.9.4"]
+dependencies = ["ruff==0.9.5"]
 config-path = "none"           # Disable Hatch's default Ruff config.
 
 [tool.ruff]
