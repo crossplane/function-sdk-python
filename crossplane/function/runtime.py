@@ -16,6 +16,7 @@
 
 import asyncio
 import os
+import signal
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -25,6 +26,7 @@ import crossplane.function.proto.v1.run_function_pb2_grpc as grpcv1
 import crossplane.function.proto.v1beta1.run_function_pb2 as fnv1beta1
 import crossplane.function.proto.v1beta1.run_function_pb2_grpc as grpcv1beta1
 
+GRACE_PERIOD = 5
 SERVICE_NAMES = (
     reflection.SERVICE_NAME,
     fnv1.DESCRIPTOR.services_by_name["FunctionRunnerService"].full_name,
@@ -64,6 +66,10 @@ def load_credentials(tls_certs_dir: str) -> grpc.ServerCredentials:
     )
 
 
+async def _stop(server, timeout):  # noqa: ASYNC109
+    await server.stop(grace=timeout)
+
+
 def serve(
     function: grpcv1.FunctionRunnerService,
     address: str,
@@ -89,6 +95,10 @@ def serve(
     loop = asyncio.get_event_loop()
 
     server = grpc.aio.server()
+
+    loop.add_signal_handler(
+        signal.SIGTERM, lambda: asyncio.create_task(_stop(server, timeout=GRACE_PERIOD))
+    )
 
     grpcv1.add_FunctionRunnerServiceServicer_to_server(function, server)
     grpcv1beta1.add_FunctionRunnerServiceServicer_to_server(
@@ -116,7 +126,7 @@ def serve(
     try:
         loop.run_until_complete(start())
     finally:
-        loop.run_until_complete(server.stop(grace=5))
+        loop.run_until_complete(server.stop(grace=GRACE_PERIOD))
         loop.close()
 
 
