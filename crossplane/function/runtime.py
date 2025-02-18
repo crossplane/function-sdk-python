@@ -66,8 +66,8 @@ def load_credentials(tls_certs_dir: str) -> grpc.ServerCredentials:
     )
 
 
-async def _stop(server, timeout):  # noqa: ASYNC109
-    await server.stop(grace=timeout)
+async def _stop(server, grace=GRACE_PERIOD):
+    await server.stop(grace=grace)
 
 
 def serve(
@@ -96,8 +96,9 @@ def serve(
 
     server = grpc.aio.server()
 
-    loop.add_signal_handler(
-        signal.SIGTERM, lambda: asyncio.create_task(_stop(server, timeout=GRACE_PERIOD))
+    signal.signal(
+        signal.SIGTERM,
+        lambda _, __: asyncio.create_task(_stop(server)),
     )
 
     grpcv1.add_FunctionRunnerServiceServicer_to_server(function, server)
@@ -126,7 +127,8 @@ def serve(
     try:
         loop.run_until_complete(start())
     finally:
-        loop.run_until_complete(server.stop(grace=GRACE_PERIOD))
+        if server._server.is_running():
+            loop.run_until_complete(server.stop(grace=GRACE_PERIOD))
         loop.close()
 
 
