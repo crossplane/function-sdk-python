@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import dataclasses
+import os
+import signal
 import unittest
 
 import grpc
@@ -51,6 +54,25 @@ class TestRuntime(unittest.IsolatedAsyncioTestCase):
             rsp = await beta_runner.RunFunction(case.req, None)
 
             self.assertEqual(rsp, case.want, "-want, +got")
+
+    async def test_sigterm_handling(self) -> None:
+        async def mock_server():
+            await server.start()
+            await asyncio.sleep(1)
+            self.assertTrue(server._server.is_running(), "Server should be running")
+            os.kill(os.getpid(), signal.SIGTERM)
+            await server.wait_for_termination()
+            self.assertFalse(
+                server._server.is_running(),
+                "Server should have been stopped on SIGTERM",
+            )
+
+        server = grpc.aio.server()
+        signal.signal(
+            signal.SIGTERM,
+            lambda _, __: asyncio.create_task(runtime._stop(server)),
+        )
+        await mock_server()
 
 
 class EchoRunner(grpcv1.FunctionRunnerService):
