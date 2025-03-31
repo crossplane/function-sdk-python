@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
   "grpcio==1.70.0",
   "grpcio-reflection==1.*",
-  "protobuf==5.29.3",
+  "protobuf==6.30.2",
   "pydantic==2.*",
   "structlog==25.*",
 ]
