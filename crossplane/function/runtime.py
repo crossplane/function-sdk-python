@@ -16,6 +16,7 @@
 
 import asyncio
 import os
+import signal
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -30,6 +31,8 @@ SERVICE_NAMES = (
     fnv1.DESCRIPTOR.services_by_name["FunctionRunnerService"].full_name,
     fnv1beta1.DESCRIPTOR.services_by_name["FunctionRunnerService"].full_name,
 )
+
+SHUTDOWN_GRACE_PERIOD_SECONDS = 5
 
 
 def load_credentials(tls_certs_dir: str) -> grpc.ServerCredentials:
@@ -90,6 +93,11 @@ def serve(
 
     server = grpc.aio.server()
 
+    loop.add_signal_handler(
+        signal.SIGTERM,
+        lambda: asyncio.ensure_future(server.stop(grace=SHUTDOWN_GRACE_PERIOD_SECONDS)),
+    )
+
     grpcv1.add_FunctionRunnerServiceServicer_to_server(function, server)
     grpcv1beta1.add_FunctionRunnerServiceServicer_to_server(
         BetaFunctionRunner(wrapped=function), server
@@ -116,7 +124,7 @@ def serve(
     try:
         loop.run_until_complete(start())
     finally:
-        loop.run_until_complete(server.stop(grace=5))
+        loop.run_until_complete(server.stop(grace=SHUTDOWN_GRACE_PERIOD_SECONDS))
         loop.close()
 
 
