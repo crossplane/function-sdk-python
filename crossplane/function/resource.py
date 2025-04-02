@@ -45,8 +45,8 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
             # apiVersion is set to its default value 's3.aws.upbound.io/v1beta2'
             # (and not explicitly provided during initialization), it will be
             # excluded from the serialized output.
-            data['apiVersion'] = source.apiVersion
-            data['kind'] = source.kind
+            data["apiVersion"] = source.apiVersion
+            data["kind"] = source.kind
             r.resource.update(data)
         case structpb.Struct():
             # TODO(negz): Use struct_to_dict and update to match other semantics?
