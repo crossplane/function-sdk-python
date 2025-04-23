@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "grpcio==1.71.0",
   "grpcio-reflection==1.*",
-  "protobuf==6.30.2",
+  "protobuf==5.29.3", # Must be compatible with grpcio-tools.
   "pydantic==2.*",
   "structlog==25.*",
 ]
@@ -45,7 +45,10 @@ dependencies = ["ipython==9.1.0"]
 type = "virtual"
 detached = true
 path = ".venv-generate"
-dependencies = ["grpcio-tools==1.71.0"]
+dependencies = [
+  "grpcio-tools==1.71.0",
+  "protobuf==5.29.3",
+]
 
 [tool.hatch.envs.generate.scripts]
 protoc = "python -m grpc_tools.protoc --proto_path=. --python_out=. --pyi_out=. --grpc_python_out=. crossplane/function/proto/v1beta1/run_function.proto crossplane/function/proto/v1/run_function.proto"
