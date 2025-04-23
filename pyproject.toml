@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "grpcio==1.71.0",
   "grpcio-reflection==1.*",
-  "protobuf==5.29.3", # Must be compatible with grpcio-tools.
+  "protobuf==5.29.4", # Must be compatible with grpcio-tools.
   "pydantic==2.*",
   "structlog==25.*",
 ]
@@ -47,7 +47,7 @@ detached = true
 path = ".venv-generate"
 dependencies = [
   "grpcio-tools==1.71.0",
-  "protobuf==5.29.3",
+  "protobuf==5.29.4",
 ]
 
 [tool.hatch.envs.generate.scripts]
