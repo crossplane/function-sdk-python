@@ -1,10 +1,11 @@
-from google.protobuf import struct_pb2 as _struct_pb2
 from google.protobuf import duration_pb2 as _duration_pb2
+from google.protobuf import struct_pb2 as _struct_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -49,8 +50,8 @@ STATUS_CONDITION_TRUE: Status
 STATUS_CONDITION_FALSE: Status
 
 class RunFunctionRequest(_message.Message):
-    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials")
-    class ExtraResourcesEntry(_message.Message):
+    __slots__ = ("meta", "observed", "desired", "input", "context", "required_resources", "credentials")
+    class RequiredResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
@@ -69,16 +70,16 @@ class RunFunctionRequest(_message.Message):
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     INPUT_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
-    EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
     meta: RequestMeta
     observed: State
     desired: State
     input: _struct_pb2.Struct
     context: _struct_pb2.Struct
-    extra_resources: _containers.MessageMap[str, Resources]
+    required_resources: _containers.MessageMap[str, Resources]
     credentials: _containers.MessageMap[str, Credentials]
-    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ...) -> None: ...
+    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ...) -> None: ...
 
 class Credentials(_message.Message):
     __slots__ = ("credential_data",)
@@ -106,20 +107,22 @@ class Resources(_message.Message):
     def __init__(self, items: _Optional[_Iterable[_Union[Resource, _Mapping]]] = ...) -> None: ...
 
 class RunFunctionResponse(_message.Message):
-    __slots__ = ("meta", "desired", "results", "context", "requirements", "conditions")
+    __slots__ = ("meta", "desired", "results", "context", "requirements", "conditions", "output")
     META_FIELD_NUMBER: _ClassVar[int]
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
     REQUIREMENTS_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_FIELD_NUMBER: _ClassVar[int]
     meta: ResponseMeta
     desired: State
     results: _containers.RepeatedCompositeFieldContainer[Result]
     context: _struct_pb2.Struct
     requirements: Requirements
     conditions: _containers.RepeatedCompositeFieldContainer[Condition]
-    def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ...) -> None: ...
+    output: _struct_pb2.Struct
+    def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ..., output: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class RequestMeta(_message.Message):
     __slots__ = ("tag",)
@@ -128,29 +131,31 @@ class RequestMeta(_message.Message):
     def __init__(self, tag: _Optional[str] = ...) -> None: ...
 
 class Requirements(_message.Message):
-    __slots__ = ("extra_resources",)
-    class ExtraResourcesEntry(_message.Message):
+    __slots__ = ("resources",)
+    class ResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: ResourceSelector
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ResourceSelector, _Mapping]] = ...) -> None: ...
-    EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
-    extra_resources: _containers.MessageMap[str, ResourceSelector]
-    def __init__(self, extra_resources: _Optional[_Mapping[str, ResourceSelector]] = ...) -> None: ...
+    RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    resources: _containers.MessageMap[str, ResourceSelector]
+    def __init__(self, resources: _Optional[_Mapping[str, ResourceSelector]] = ...) -> None: ...
 
 class ResourceSelector(_message.Message):
-    __slots__ = ("api_version", "kind", "match_name", "match_labels")
+    __slots__ = ("api_version", "kind", "match_name", "match_labels", "namespace")
     API_VERSION_FIELD_NUMBER: _ClassVar[int]
     KIND_FIELD_NUMBER: _ClassVar[int]
     MATCH_NAME_FIELD_NUMBER: _ClassVar[int]
     MATCH_LABELS_FIELD_NUMBER: _ClassVar[int]
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     api_version: str
     kind: str
     match_name: str
     match_labels: MatchLabels
-    def __init__(self, api_version: _Optional[str] = ..., kind: _Optional[str] = ..., match_name: _Optional[str] = ..., match_labels: _Optional[_Union[MatchLabels, _Mapping]] = ...) -> None: ...
+    namespace: str
+    def __init__(self, api_version: _Optional[str] = ..., kind: _Optional[str] = ..., match_name: _Optional[str] = ..., match_labels: _Optional[_Union[MatchLabels, _Mapping]] = ..., namespace: _Optional[str] = ...) -> None: ...
 
 class MatchLabels(_message.Message):
     __slots__ = ("labels",)
@@ -171,7 +176,7 @@ class ResponseMeta(_message.Message):
     TTL_FIELD_NUMBER: _ClassVar[int]
     tag: str
     ttl: _duration_pb2.Duration
-    def __init__(self, tag: _Optional[str] = ..., ttl: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    def __init__(self, tag: _Optional[str] = ..., ttl: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class State(_message.Message):
     __slots__ = ("composite", "resources")
