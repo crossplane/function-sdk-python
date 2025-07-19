@@ -5,7 +5,7 @@ import warnings
 
 from crossplane.function.proto.v1 import run_function_pb2 as crossplane_dot_function_dot_proto_dot_v1_dot_run__function__pb2
 
-GRPC_GENERATED_VERSION = '1.71.0'
+GRPC_GENERATED_VERSION = '1.73.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -26,7 +26,7 @@ if _version_not_supported:
 
 
 class FunctionRunnerServiceStub(object):
-    """A FunctionRunnerService is a Composition Function.
+    """A FunctionRunnerService is a function.
     """
 
     def __init__(self, channel):
@@ -43,11 +43,11 @@ class FunctionRunnerServiceStub(object):
 
 
 class FunctionRunnerServiceServicer(object):
-    """A FunctionRunnerService is a Composition Function.
+    """A FunctionRunnerService is a function.
     """
 
     def RunFunction(self, request, context):
-        """RunFunction runs the Composition Function.
+        """RunFunction runs the function.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -70,7 +70,7 @@ def add_FunctionRunnerServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class FunctionRunnerService(object):
-    """A FunctionRunnerService is a Composition Function.
+    """A FunctionRunnerService is a function.
     """
 
     @staticmethod
