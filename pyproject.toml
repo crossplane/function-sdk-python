@@ -46,7 +46,7 @@ type = "virtual"
 detached = true
 path = ".venv-generate"
 dependencies = [
-  "grpcio-tools==1.73.1",
+  "grpcio-tools==1.74.0",
   "protobuf==6.31.1",
 ]
 
