@@ -161,3 +161,6 @@ cython_debug/
 
 # We don't commit our docs - instead we generate them and upload to GitHub pages.
 docs
+
+# AIs
+.claude/
