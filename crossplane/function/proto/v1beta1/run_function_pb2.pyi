@@ -50,8 +50,8 @@ STATUS_CONDITION_TRUE: Status
 STATUS_CONDITION_FALSE: Status
 
 class RunFunctionRequest(_message.Message):
-    __slots__ = ("meta", "observed", "desired", "input", "context", "required_resources", "credentials")
-    class RequiredResourcesEntry(_message.Message):
+    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials", "required_resources")
+    class ExtraResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
@@ -65,21 +65,30 @@ class RunFunctionRequest(_message.Message):
         key: str
         value: Credentials
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Credentials, _Mapping]] = ...) -> None: ...
+    class RequiredResourcesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: Resources
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Resources, _Mapping]] = ...) -> None: ...
     META_FIELD_NUMBER: _ClassVar[int]
     OBSERVED_FIELD_NUMBER: _ClassVar[int]
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     INPUT_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
-    REQUIRED_RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     meta: RequestMeta
     observed: State
     desired: State
     input: _struct_pb2.Struct
     context: _struct_pb2.Struct
-    required_resources: _containers.MessageMap[str, Resources]
+    extra_resources: _containers.MessageMap[str, Resources]
     credentials: _containers.MessageMap[str, Credentials]
-    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ...) -> None: ...
+    required_resources: _containers.MessageMap[str, Resources]
+    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ...) -> None: ...
 
 class Credentials(_message.Message):
     __slots__ = ("credential_data",)
@@ -131,7 +140,14 @@ class RequestMeta(_message.Message):
     def __init__(self, tag: _Optional[str] = ...) -> None: ...
 
 class Requirements(_message.Message):
-    __slots__ = ("resources",)
+    __slots__ = ("extra_resources", "resources")
+    class ExtraResourcesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: ResourceSelector
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ResourceSelector, _Mapping]] = ...) -> None: ...
     class ResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -139,9 +155,11 @@ class Requirements(_message.Message):
         key: str
         value: ResourceSelector
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ResourceSelector, _Mapping]] = ...) -> None: ...
+    EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    extra_resources: _containers.MessageMap[str, ResourceSelector]
     resources: _containers.MessageMap[str, ResourceSelector]
-    def __init__(self, resources: _Optional[_Mapping[str, ResourceSelector]] = ...) -> None: ...
+    def __init__(self, extra_resources: _Optional[_Mapping[str, ResourceSelector]] = ..., resources: _Optional[_Mapping[str, ResourceSelector]] = ...) -> None: ...
 
 class ResourceSelector(_message.Message):
     __slots__ = ("api_version", "kind", "match_name", "match_labels", "namespace")
