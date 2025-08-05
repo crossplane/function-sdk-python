@@ -212,6 +212,58 @@ class TestRequest(unittest.TestCase):
             got = request.get_required_resource(case.req, case.name)
             self.assertEqual(case.want, got, case.reason)
 
+    def test_get_credentials(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            name: str
+            want: request.Credentials
+
+        cases = [
+            TestCase(
+                reason="Should return empty credentials when no credentials exist.",
+                req=fnv1.RunFunctionRequest(),
+                name="test",
+                want=request.Credentials(type="data", data={}),
+            ),
+            TestCase(
+                reason="Should return empty credentials when specified name not found.",
+                req=fnv1.RunFunctionRequest(
+                    credentials={
+                        "other-cred": fnv1.Credentials(
+                            credential_data=fnv1.CredentialData(data={"key": b"value"})
+                        )
+                    }
+                ),
+                name="test",
+                want=request.Credentials(type="data", data={}),
+            ),
+            TestCase(
+                reason="Should return credentials when they exist.",
+                req=fnv1.RunFunctionRequest(
+                    credentials={
+                        "test": fnv1.Credentials(
+                            credential_data=fnv1.CredentialData(
+                                data={"username": b"admin", "password": b"secret"}
+                            )
+                        )
+                    }
+                ),
+                name="test",
+                want=request.Credentials(
+                    type="credential_data",
+                    data={"username": "admin", "password": "secret"},
+                ),
+            ),
+        ]
+
+        for case in cases:
+            got = request.get_credentials(case.req, case.name)
+            self.assertEqual(
+                dataclasses.asdict(case.want), dataclasses.asdict(got), case.reason
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -140,24 +140,3 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
         return condition
 
     return unknown
-
-
-@dataclasses.dataclass
-class Credentials:
-    """Credentials."""
-
-    type: str
-    data: dict
-
-
-def get_credentials(req: structpb.Struct, name: str) -> Credentials:
-    """Get the supplied credentials."""
-    empty = Credentials(type="data", data={})
-    if not req or "credentials" not in req:
-        return empty
-    if not req["credentials"] or name not in req["credentials"]:
-        return empty
-    return Credentials(
-        type=req["credentials"][name]["type"],
-        data=struct_to_dict(req["credentials"][name]["data"]),
-    )
