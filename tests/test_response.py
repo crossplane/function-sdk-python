@@ -66,8 +66,8 @@ class TestResponse(unittest.TestCase):
         for case in cases:
             got = response.to(case.req, case.ttl)
             self.assertEqual(
-                json_format.MessageToJson(case.want),
-                json_format.MessageToJson(got),
+                json_format.MessageToJson(case.want, sort_keys=True),
+                json_format.MessageToJson(got, sort_keys=True),
                 "-want, +got",
             )
 
@@ -185,8 +185,8 @@ class TestResponse(unittest.TestCase):
             got_selector = case.rsp.requirements.resources[case.name]
 
             self.assertEqual(
-                json_format.MessageToJson(case.want_selector),
-                json_format.MessageToJson(got_selector),
+                json_format.MessageToJson(case.want_selector, sort_keys=True),
+                json_format.MessageToJson(got_selector, sort_keys=True),
                 case.reason,
             )
 
