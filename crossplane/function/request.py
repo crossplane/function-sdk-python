@@ -14,8 +14,18 @@
 
 """Utilities for working with RunFunctionRequests."""
 
+import dataclasses
+
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
 from crossplane.function import resource
+
+
+@dataclasses.dataclass
+class Credentials:
+    """Credentials."""
+
+    type: str
+    data: dict
 
 
 def get_required_resources(req: fnv1.RunFunctionRequest, name: str) -> list[dict]:
@@ -73,3 +83,36 @@ def get_required_resource(req: fnv1.RunFunctionRequest, name: str) -> dict | Non
     """
     resources = get_required_resources(req, name)
     return resources[0] if resources else None
+
+
+def get_credentials(req: fnv1.RunFunctionRequest, name: str) -> Credentials:
+    """Get the supplied credentials from the request.
+
+    Args:
+        req: The RunFunctionRequest containing credentials.
+        name: The name of the credentials to get.
+
+    Returns:
+        The requested credentials with type and data.
+
+    If the credentials don't exist, returns empty credentials with type "data"
+    and empty data dictionary.
+    """
+    empty = Credentials(type="data", data={})
+
+    if not req or name not in req.credentials:
+        return empty
+
+    cred = req.credentials[name]
+
+    # Use WhichOneof to determine which field in the oneof is set
+    source_type = cred.WhichOneof("source")
+    if source_type == "credential_data":
+        # Convert bytes data to string data for backward compatibility
+        data = {}
+        for key, value in cred.credential_data.data.items():
+            data[key] = value.decode("utf-8")
+        return Credentials(type="credential_data", data=data)
+
+    # If no recognized source type is set, return empty
+    return empty
