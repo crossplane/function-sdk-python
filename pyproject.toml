@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "grpcio==1.75.1",
+  "grpcio==1.76.0",
   "grpcio-reflection==1.*",
   "protobuf==6.32.1", # Must be compatible with grpcio-tools.
   "pydantic==2.*",
