@@ -46,8 +46,8 @@ type = "virtual"
 detached = true
 path = ".venv-generate"
 dependencies = [
-  "grpcio-tools==1.74.0",
-  "protobuf==6.31.1",
+  "grpcio-tools==1.76.0",
+  "protobuf==6.33.1",
 ]
 
 [tool.hatch.envs.generate.scripts]
