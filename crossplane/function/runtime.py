@@ -17,6 +17,7 @@
 import asyncio
 import os
 import signal
+from typing import Any, Optional, Sequence, Tuple
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -73,6 +74,7 @@ def serve(
     *,
     creds: grpc.ServerCredentials,
     insecure: bool,
+    options: Optional[Sequence[Tuple[str, Any]]] = None,
 ) -> None:
     """Start a gRPC server and serve requests asychronously.
 
@@ -91,7 +93,7 @@ def serve(
     # Define the loop before the server so everything uses the same loop.
     loop = asyncio.get_event_loop()
 
-    server = grpc.aio.server()
+    server = grpc.aio.server(options=options)
 
     loop.add_signal_handler(
         signal.SIGTERM,
