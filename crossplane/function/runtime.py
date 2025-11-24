@@ -17,7 +17,8 @@
 import asyncio
 import os
 import signal
-from typing import Any, Sequence, Tuple
+from collections.abc import Sequence
+from typing import Any
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -74,7 +75,7 @@ def serve(
     *,
     creds: grpc.ServerCredentials,
     insecure: bool,
-    options: Sequence[Tuple[str, Any]] = None,
+    options: Sequence[tuple[str, Any]] | None = None,
 ) -> None:
     """Start a gRPC server and serve requests asychronously.
 
@@ -83,6 +84,7 @@ def serve(
         address: The address at which to listen for requests.
         creds: The credentials used to authenticate requests.
         insecure: Serve insecurely, without credentials or encryption.
+        options: Additional gRPC server options.
 
     Raises:
         ValueError if creds is None and insecure is False.
