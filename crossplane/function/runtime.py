@@ -84,7 +84,9 @@ def serve(
         address: The address at which to listen for requests.
         creds: The credentials used to authenticate requests.
         insecure: Serve insecurely, without credentials or encryption.
-        options: Additional gRPC server options.
+        options: Additional gRPC server options. Eg. set max receive message
+                 size to 5Mb (default is 4Mb):
+                 [("grpc.max_receive_message_length", 1024 * 1024 * 5)]
 
     Raises:
         ValueError if creds is None and insecure is False.
