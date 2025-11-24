@@ -17,6 +17,8 @@
 import asyncio
 import os
 import signal
+from collections.abc import Sequence
+from typing import Any
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -73,6 +75,7 @@ def serve(
     *,
     creds: grpc.ServerCredentials,
     insecure: bool,
+    options: Sequence[tuple[str, Any]] | None = None,
 ) -> None:
     """Start a gRPC server and serve requests asychronously.
 
@@ -81,6 +84,9 @@ def serve(
         address: The address at which to listen for requests.
         creds: The credentials used to authenticate requests.
         insecure: Serve insecurely, without credentials or encryption.
+        options: Additional gRPC server options. Eg. set max receive message
+                 size to 5Mb (default is 4Mb):
+                 [("grpc.max_receive_message_length", 1024 * 1024 * 5)]
 
     Raises:
         ValueError if creds is None and insecure is False.
@@ -91,7 +97,7 @@ def serve(
     # Define the loop before the server so everything uses the same loop.
     loop = asyncio.get_event_loop()
 
-    server = grpc.aio.server()
+    server = grpc.aio.server(options=options)
 
     loop.add_signal_handler(
         signal.SIGTERM,
