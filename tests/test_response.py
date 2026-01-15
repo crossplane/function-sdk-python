@@ -215,6 +215,59 @@ class TestResponse(unittest.TestCase):
                 match_labels=None,
             )
 
+    def test_require_schema(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            rsp: fnv1.RunFunctionResponse
+            name: str
+            api_version: str
+            kind: str
+            want_selector: fnv1.SchemaSelector
+
+        cases = [
+            TestCase(
+                reason="Should create schema requirement.",
+                rsp=fnv1.RunFunctionResponse(),
+                name="bucket-schema",
+                api_version="s3.aws.upbound.io/v1beta2",
+                kind="Bucket",
+                want_selector=fnv1.SchemaSelector(
+                    api_version="s3.aws.upbound.io/v1beta2",
+                    kind="Bucket",
+                ),
+            ),
+            TestCase(
+                reason="Should create schema requirement for core types.",
+                rsp=fnv1.RunFunctionResponse(),
+                name="pod-schema",
+                api_version="v1",
+                kind="Pod",
+                want_selector=fnv1.SchemaSelector(
+                    api_version="v1",
+                    kind="Pod",
+                ),
+            ),
+        ]
+
+        for case in cases:
+            response.require_schema(
+                case.rsp,
+                case.name,
+                case.api_version,
+                case.kind,
+            )
+
+            # Check that the requirement was added
+            self.assertIn(case.name, case.rsp.requirements.schemas, case.reason)
+            got_selector = case.rsp.requirements.schemas[case.name]
+
+            self.assertEqual(
+                json_format.MessageToJson(case.want_selector, sort_keys=True),
+                json_format.MessageToJson(got_selector, sort_keys=True),
+                case.reason,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

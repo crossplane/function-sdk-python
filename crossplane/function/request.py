@@ -41,6 +41,21 @@ def get_required_resources(req: fnv1.RunFunctionRequest, name: str) -> list[dict
     Required resources are previously called "extra resources" in composition
     functions. For operation functions, there are no observed resources, so
     all resources are "required" resources that the function requested.
+
+    Note: This returns an empty list both when the requirement hasn't been
+    resolved yet, and when it was resolved but no resources matched. To
+    distinguish between these cases, check whether Crossplane resolved the
+    requirement using `name in req.required_resources`:
+
+        # Always declare requirements - Crossplane considers them satisfied
+        # when they stabilize across calls.
+        response.require_resources(rsp, name, ...)
+
+        if name in req.required_resources:
+            resources = request.get_required_resources(req, name)
+            if not resources:
+                # Crossplane resolved the requirement, but found no matches
+                response.fatal(rsp, "no matching resources found")
     """
     if name not in req.required_resources:
         return []
@@ -116,3 +131,46 @@ def get_credentials(req: fnv1.RunFunctionRequest, name: str) -> Credentials:
 
     # If no recognized source type is set, return empty
     return empty
+
+
+def get_required_schema(req: fnv1.RunFunctionRequest, name: str) -> dict | None:
+    """Get a required OpenAPI schema by name from the request.
+
+    Args:
+        req: The RunFunctionRequest containing required schemas.
+        name: The name of the required schema to get.
+
+    Returns:
+        The OpenAPI v3 schema as a dictionary, or None if not found.
+
+    Note: This returns None both when the requirement hasn't been resolved yet,
+    and when it was resolved but the schema wasn't found. To distinguish between
+    these cases, check whether Crossplane resolved the requirement using
+    `name in req.required_schemas`:
+
+        # Always declare requirements - Crossplane considers them satisfied
+        # when they stabilize across calls.
+        response.require_schema(rsp, name, "example.org/v1", "MyKind")
+
+        if name in req.required_schemas:
+            schema = request.get_required_schema(req, name)
+            if schema is None:
+                # Crossplane resolved the requirement, but couldn't find it
+                response.fatal(rsp, "schema not found")
+
+    The returned schema can be used with libraries like openapi-schema-validator
+    or jsonschema for validation:
+
+        schema = request.get_required_schema(req, "my-schema")
+        if schema:
+            from openapi_schema_validator import validate
+            validate(resource, schema)
+    """
+    if name not in req.required_schemas:
+        return None
+
+    schema = req.required_schemas[name]
+    if not schema.HasField("openapi_v3"):
+        return None
+
+    return resource.struct_to_dict(schema.openapi_v3)

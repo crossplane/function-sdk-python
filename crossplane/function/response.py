@@ -149,3 +149,32 @@ def require_resources(  # noqa: PLR0913
         selector.namespace = namespace
 
     rsp.requirements.resources[name].CopyFrom(selector)
+
+
+def require_schema(
+    rsp: fnv1.RunFunctionResponse,
+    name: str,
+    api_version: str,
+    kind: str,
+) -> None:
+    """Add a schema requirement to the response.
+
+    Args:
+        rsp: The RunFunctionResponse to update.
+        name: The name to use for this requirement.
+        api_version: The API version of the resource kind, e.g. "example.org/v1".
+        kind: The kind of resource, e.g. "MyResource".
+
+    This tells Crossplane to fetch the OpenAPI schema for the specified resource
+    kind and include it in the next call to the function in
+    req.required_schemas[name]. Use request.get_required_schema to retrieve it.
+
+    For CRDs, Crossplane returns the spec.versions[].schema.openAPIV3Schema field.
+    If Crossplane cannot find a schema for the requested kind, the schema will be
+    empty (get_required_schema will return None).
+    """
+    selector = fnv1.SchemaSelector(
+        api_version=api_version,
+        kind=kind,
+    )
+    rsp.requirements.schemas[name].CopyFrom(selector)
