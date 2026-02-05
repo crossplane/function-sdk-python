@@ -11,6 +11,15 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class Capability(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CAPABILITY_UNSPECIFIED: _ClassVar[Capability]
+    CAPABILITY_CAPABILITIES: _ClassVar[Capability]
+    CAPABILITY_REQUIRED_RESOURCES: _ClassVar[Capability]
+    CAPABILITY_CREDENTIALS: _ClassVar[Capability]
+    CAPABILITY_CONDITIONS: _ClassVar[Capability]
+    CAPABILITY_REQUIRED_SCHEMAS: _ClassVar[Capability]
+
 class Ready(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     READY_UNSPECIFIED: _ClassVar[Ready]
@@ -36,6 +45,12 @@ class Status(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     STATUS_CONDITION_UNKNOWN: _ClassVar[Status]
     STATUS_CONDITION_TRUE: _ClassVar[Status]
     STATUS_CONDITION_FALSE: _ClassVar[Status]
+CAPABILITY_UNSPECIFIED: Capability
+CAPABILITY_CAPABILITIES: Capability
+CAPABILITY_REQUIRED_RESOURCES: Capability
+CAPABILITY_CREDENTIALS: Capability
+CAPABILITY_CONDITIONS: Capability
+CAPABILITY_REQUIRED_SCHEMAS: Capability
 READY_UNSPECIFIED: Ready
 READY_TRUE: Ready
 READY_FALSE: Ready
@@ -145,10 +160,12 @@ class RunFunctionResponse(_message.Message):
     def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ..., output: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class RequestMeta(_message.Message):
-    __slots__ = ("tag",)
+    __slots__ = ("tag", "capabilities")
     TAG_FIELD_NUMBER: _ClassVar[int]
+    CAPABILITIES_FIELD_NUMBER: _ClassVar[int]
     tag: str
-    def __init__(self, tag: _Optional[str] = ...) -> None: ...
+    capabilities: _containers.RepeatedScalarFieldContainer[Capability]
+    def __init__(self, tag: _Optional[str] = ..., capabilities: _Optional[_Iterable[_Union[Capability, str]]] = ...) -> None: ...
 
 class Requirements(_message.Message):
     __slots__ = ("extra_resources", "resources", "schemas")

@@ -133,6 +133,33 @@ def get_credentials(req: fnv1.RunFunctionRequest, name: str) -> Credentials:
     return empty
 
 
+def has_capability(
+    req: fnv1.RunFunctionRequest,
+    cap: fnv1.Capability.ValueType,
+) -> bool:
+    """Check whether Crossplane advertises a particular capability.
+
+    Args:
+        req: The RunFunctionRequest to check.
+        cap: The capability to check for, e.g. fnv1.CAPABILITY_REQUIRED_SCHEMAS.
+
+    Returns:
+        True if the capability is present in the request metadata.
+
+    Crossplane sends its capabilities in the request metadata. Functions can use
+    this to determine whether Crossplane will honor certain fields in their
+    response, or populate certain fields in their request.
+
+    If CAPABILITY_CAPABILITIES is absent, the calling Crossplane predates
+    capability advertisement (pre-v2.2). In this case has_capability always
+    returns False, even for features the older Crossplane does support.
+
+        if request.has_capability(req, fnv1.CAPABILITY_REQUIRED_SCHEMAS):
+            response.require_schema(rsp, "xr", xr_api_version, xr_kind)
+    """
+    return cap in req.meta.capabilities
+
+
 def get_required_schema(req: fnv1.RunFunctionRequest, name: str) -> dict | None:
     """Get a required OpenAPI schema by name from the request.
 

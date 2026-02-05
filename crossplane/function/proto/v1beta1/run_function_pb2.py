@@ -26,7 +26,7 @@ from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4crossplane/function/proto/v1beta1/run_function.proto\x12\x1e\x61piextensions.fn.proto.v1beta1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xc3\x08\n\x12RunFunctionRequest\x12\x39\n\x04meta\x18\x01 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.RequestMeta\x12\x37\n\x08observed\x18\x02 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12\x36\n\x07\x64\x65sired\x18\x03 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12+\n\x05input\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12-\n\x07\x63ontext\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x12\x63\n\x0f\x65xtra_resources\x18\x06 \x03(\x0b\x32\x46.apiextensions.fn.proto.v1beta1.RunFunctionRequest.ExtraResourcesEntryB\x02\x18\x01\x12X\n\x0b\x63redentials\x18\x07 \x03(\x0b\x32\x43.apiextensions.fn.proto.v1beta1.RunFunctionRequest.CredentialsEntry\x12\x65\n\x12required_resources\x18\x08 \x03(\x0b\x32I.apiextensions.fn.proto.v1beta1.RunFunctionRequest.RequiredResourcesEntry\x12\x61\n\x10required_schemas\x18\t \x03(\x0b\x32G.apiextensions.fn.proto.v1beta1.RunFunctionRequest.RequiredSchemasEntry\x1a`\n\x13\x45xtraResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x38\n\x05value\x18\x02 \x01(\x0b\x32).apiextensions.fn.proto.v1beta1.Resources:\x02\x38\x01\x1a_\n\x10\x43redentialsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12:\n\x05value\x18\x02 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.Credentials:\x02\x38\x01\x1a\x63\n\x16RequiredResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x38\n\x05value\x18\x02 \x01(\x0b\x32).apiextensions.fn.proto.v1beta1.Resources:\x02\x38\x01\x1a^\n\x14RequiredSchemasEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x35\n\x05value\x18\x02 \x01(\x0b\x32&.apiextensions.fn.proto.v1beta1.Schema:\x02\x38\x01\x42\x08\n\x06_inputB\n\n\x08_context\"b\n\x0b\x43redentials\x12I\n\x0f\x63redential_data\x18\x01 \x01(\x0b\x32..apiextensions.fn.proto.v1beta1.CredentialDataH\x00\x42\x08\n\x06source\"\x85\x01\n\x0e\x43redentialData\x12\x46\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x38.apiextensions.fn.proto.v1beta1.CredentialData.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"D\n\tResources\x12\x37\n\x05items\x18\x01 \x03(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource\"\xb9\x03\n\x13RunFunctionResponse\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.apiextensions.fn.proto.v1beta1.ResponseMeta\x12\x36\n\x07\x64\x65sired\x18\x02 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12\x37\n\x07results\x18\x03 \x03(\x0b\x32&.apiextensions.fn.proto.v1beta1.Result\x12-\n\x07\x63ontext\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12\x42\n\x0crequirements\x18\x05 \x01(\x0b\x32,.apiextensions.fn.proto.v1beta1.Requirements\x12=\n\nconditions\x18\x06 \x03(\x0b\x32).apiextensions.fn.proto.v1beta1.Condition\x12,\n\x06output\x18\x07 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x42\n\n\x08_contextB\t\n\x07_output\"\x1a\n\x0bRequestMeta\x12\x0b\n\x03tag\x18\x01 \x01(\t\"\xb6\x04\n\x0cRequirements\x12]\n\x0f\x65xtra_resources\x18\x01 \x03(\x0b\x32@.apiextensions.fn.proto.v1beta1.Requirements.ExtraResourcesEntryB\x02\x18\x01\x12N\n\tresources\x18\x02 \x03(\x0b\x32;.apiextensions.fn.proto.v1beta1.Requirements.ResourcesEntry\x12J\n\x07schemas\x18\x03 \x03(\x0b\x32\x39.apiextensions.fn.proto.v1beta1.Requirements.SchemasEntry\x1ag\n\x13\x45xtraResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12?\n\x05value\x18\x02 \x01(\x0b\x32\x30.apiextensions.fn.proto.v1beta1.ResourceSelector:\x02\x38\x01\x1a\x62\n\x0eResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12?\n\x05value\x18\x02 \x01(\x0b\x32\x30.apiextensions.fn.proto.v1beta1.ResourceSelector:\x02\x38\x01\x1a^\n\x0cSchemasEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12=\n\x05value\x18\x02 \x01(\x0b\x32..apiextensions.fn.proto.v1beta1.SchemaSelector:\x02\x38\x01\"3\n\x0eSchemaSelector\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\x12\x0c\n\x04kind\x18\x02 \x01(\t\"I\n\x06Schema\x12\x30\n\nopenapi_v3\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x42\r\n\x0b_openapi_v3\"\xbf\x01\n\x10ResourceSelector\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\x12\x0c\n\x04kind\x18\x02 \x01(\t\x12\x14\n\nmatch_name\x18\x03 \x01(\tH\x00\x12\x43\n\x0cmatch_labels\x18\x04 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.MatchLabelsH\x00\x12\x16\n\tnamespace\x18\x05 \x01(\tH\x01\x88\x01\x01\x42\x07\n\x05matchB\x0c\n\n_namespace\"\x85\x01\n\x0bMatchLabels\x12G\n\x06labels\x18\x01 \x03(\x0b\x32\x37.apiextensions.fn.proto.v1beta1.MatchLabels.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"P\n\x0cResponseMeta\x12\x0b\n\x03tag\x18\x01 \x01(\t\x12+\n\x03ttl\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x88\x01\x01\x42\x06\n\x04_ttl\"\xe9\x01\n\x05State\x12;\n\tcomposite\x18\x01 \x01(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource\x12G\n\tresources\x18\x02 \x03(\x0b\x32\x34.apiextensions.fn.proto.v1beta1.State.ResourcesEntry\x1aZ\n\x0eResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x37\n\x05value\x18\x02 \x01(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource:\x02\x38\x01\"\x82\x02\n\x08Resource\x12)\n\x08resource\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\x12[\n\x12\x63onnection_details\x18\x02 \x03(\x0b\x32?.apiextensions.fn.proto.v1beta1.Resource.ConnectionDetailsEntry\x12\x34\n\x05ready\x18\x03 \x01(\x0e\x32%.apiextensions.fn.proto.v1beta1.Ready\x1a\x38\n\x16\x43onnectionDetailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"\xbd\x01\n\x06Result\x12:\n\x08severity\x18\x01 \x01(\x0e\x32(.apiextensions.fn.proto.v1beta1.Severity\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x06reason\x18\x03 \x01(\tH\x00\x88\x01\x01\x12;\n\x06target\x18\x04 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.TargetH\x01\x88\x01\x01\x42\t\n\x07_reasonB\t\n\x07_target\"\xcb\x01\n\tCondition\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x36\n\x06status\x18\x02 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.Status\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12\x14\n\x07message\x18\x04 \x01(\tH\x00\x88\x01\x01\x12;\n\x06target\x18\x05 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.TargetH\x01\x88\x01\x01\x42\n\n\x08_messageB\t\n\x07_target*?\n\x05Ready\x12\x15\n\x11READY_UNSPECIFIED\x10\x00\x12\x0e\n\nREADY_TRUE\x10\x01\x12\x0f\n\x0bREADY_FALSE\x10\x02*c\n\x08Severity\x12\x18\n\x14SEVERITY_UNSPECIFIED\x10\x00\x12\x12\n\x0eSEVERITY_FATAL\x10\x01\x12\x14\n\x10SEVERITY_WARNING\x10\x02\x12\x13\n\x0fSEVERITY_NORMAL\x10\x03*V\n\x06Target\x12\x16\n\x12TARGET_UNSPECIFIED\x10\x00\x12\x14\n\x10TARGET_COMPOSITE\x10\x01\x12\x1e\n\x1aTARGET_COMPOSITE_AND_CLAIM\x10\x02*\x7f\n\x06Status\x12 \n\x1cSTATUS_CONDITION_UNSPECIFIED\x10\x00\x12\x1c\n\x18STATUS_CONDITION_UNKNOWN\x10\x01\x12\x19\n\x15STATUS_CONDITION_TRUE\x10\x02\x12\x1a\n\x16STATUS_CONDITION_FALSE\x10\x03\x32\x91\x01\n\x15\x46unctionRunnerService\x12x\n\x0bRunFunction\x12\x32.apiextensions.fn.proto.v1beta1.RunFunctionRequest\x1a\x33.apiextensions.fn.proto.v1beta1.RunFunctionResponse\"\x00\x42\x36Z4github.com/crossplane/crossplane/v2/proto/fn/v1beta1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4crossplane/function/proto/v1beta1/run_function.proto\x12\x1e\x61piextensions.fn.proto.v1beta1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xc3\x08\n\x12RunFunctionRequest\x12\x39\n\x04meta\x18\x01 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.RequestMeta\x12\x37\n\x08observed\x18\x02 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12\x36\n\x07\x64\x65sired\x18\x03 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12+\n\x05input\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12-\n\x07\x63ontext\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x12\x63\n\x0f\x65xtra_resources\x18\x06 \x03(\x0b\x32\x46.apiextensions.fn.proto.v1beta1.RunFunctionRequest.ExtraResourcesEntryB\x02\x18\x01\x12X\n\x0b\x63redentials\x18\x07 \x03(\x0b\x32\x43.apiextensions.fn.proto.v1beta1.RunFunctionRequest.CredentialsEntry\x12\x65\n\x12required_resources\x18\x08 \x03(\x0b\x32I.apiextensions.fn.proto.v1beta1.RunFunctionRequest.RequiredResourcesEntry\x12\x61\n\x10required_schemas\x18\t \x03(\x0b\x32G.apiextensions.fn.proto.v1beta1.RunFunctionRequest.RequiredSchemasEntry\x1a`\n\x13\x45xtraResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x38\n\x05value\x18\x02 \x01(\x0b\x32).apiextensions.fn.proto.v1beta1.Resources:\x02\x38\x01\x1a_\n\x10\x43redentialsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12:\n\x05value\x18\x02 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.Credentials:\x02\x38\x01\x1a\x63\n\x16RequiredResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x38\n\x05value\x18\x02 \x01(\x0b\x32).apiextensions.fn.proto.v1beta1.Resources:\x02\x38\x01\x1a^\n\x14RequiredSchemasEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x35\n\x05value\x18\x02 \x01(\x0b\x32&.apiextensions.fn.proto.v1beta1.Schema:\x02\x38\x01\x42\x08\n\x06_inputB\n\n\x08_context\"b\n\x0b\x43redentials\x12I\n\x0f\x63redential_data\x18\x01 \x01(\x0b\x32..apiextensions.fn.proto.v1beta1.CredentialDataH\x00\x42\x08\n\x06source\"\x85\x01\n\x0e\x43redentialData\x12\x46\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x38.apiextensions.fn.proto.v1beta1.CredentialData.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"D\n\tResources\x12\x37\n\x05items\x18\x01 \x03(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource\"\xb9\x03\n\x13RunFunctionResponse\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.apiextensions.fn.proto.v1beta1.ResponseMeta\x12\x36\n\x07\x64\x65sired\x18\x02 \x01(\x0b\x32%.apiextensions.fn.proto.v1beta1.State\x12\x37\n\x07results\x18\x03 \x03(\x0b\x32&.apiextensions.fn.proto.v1beta1.Result\x12-\n\x07\x63ontext\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12\x42\n\x0crequirements\x18\x05 \x01(\x0b\x32,.apiextensions.fn.proto.v1beta1.Requirements\x12=\n\nconditions\x18\x06 \x03(\x0b\x32).apiextensions.fn.proto.v1beta1.Condition\x12,\n\x06output\x18\x07 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x42\n\n\x08_contextB\t\n\x07_output\"\\\n\x0bRequestMeta\x12\x0b\n\x03tag\x18\x01 \x01(\t\x12@\n\x0c\x63\x61pabilities\x18\x02 \x03(\x0e\x32*.apiextensions.fn.proto.v1beta1.Capability\"\xb6\x04\n\x0cRequirements\x12]\n\x0f\x65xtra_resources\x18\x01 \x03(\x0b\x32@.apiextensions.fn.proto.v1beta1.Requirements.ExtraResourcesEntryB\x02\x18\x01\x12N\n\tresources\x18\x02 \x03(\x0b\x32;.apiextensions.fn.proto.v1beta1.Requirements.ResourcesEntry\x12J\n\x07schemas\x18\x03 \x03(\x0b\x32\x39.apiextensions.fn.proto.v1beta1.Requirements.SchemasEntry\x1ag\n\x13\x45xtraResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12?\n\x05value\x18\x02 \x01(\x0b\x32\x30.apiextensions.fn.proto.v1beta1.ResourceSelector:\x02\x38\x01\x1a\x62\n\x0eResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12?\n\x05value\x18\x02 \x01(\x0b\x32\x30.apiextensions.fn.proto.v1beta1.ResourceSelector:\x02\x38\x01\x1a^\n\x0cSchemasEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12=\n\x05value\x18\x02 \x01(\x0b\x32..apiextensions.fn.proto.v1beta1.SchemaSelector:\x02\x38\x01\"3\n\x0eSchemaSelector\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\x12\x0c\n\x04kind\x18\x02 \x01(\t\"I\n\x06Schema\x12\x30\n\nopenapi_v3\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x42\r\n\x0b_openapi_v3\"\xbf\x01\n\x10ResourceSelector\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\x12\x0c\n\x04kind\x18\x02 \x01(\t\x12\x14\n\nmatch_name\x18\x03 \x01(\tH\x00\x12\x43\n\x0cmatch_labels\x18\x04 \x01(\x0b\x32+.apiextensions.fn.proto.v1beta1.MatchLabelsH\x00\x12\x16\n\tnamespace\x18\x05 \x01(\tH\x01\x88\x01\x01\x42\x07\n\x05matchB\x0c\n\n_namespace\"\x85\x01\n\x0bMatchLabels\x12G\n\x06labels\x18\x01 \x03(\x0b\x32\x37.apiextensions.fn.proto.v1beta1.MatchLabels.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"P\n\x0cResponseMeta\x12\x0b\n\x03tag\x18\x01 \x01(\t\x12+\n\x03ttl\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x88\x01\x01\x42\x06\n\x04_ttl\"\xe9\x01\n\x05State\x12;\n\tcomposite\x18\x01 \x01(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource\x12G\n\tresources\x18\x02 \x03(\x0b\x32\x34.apiextensions.fn.proto.v1beta1.State.ResourcesEntry\x1aZ\n\x0eResourcesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x37\n\x05value\x18\x02 \x01(\x0b\x32(.apiextensions.fn.proto.v1beta1.Resource:\x02\x38\x01\"\x82\x02\n\x08Resource\x12)\n\x08resource\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\x12[\n\x12\x63onnection_details\x18\x02 \x03(\x0b\x32?.apiextensions.fn.proto.v1beta1.Resource.ConnectionDetailsEntry\x12\x34\n\x05ready\x18\x03 \x01(\x0e\x32%.apiextensions.fn.proto.v1beta1.Ready\x1a\x38\n\x16\x43onnectionDetailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"\xbd\x01\n\x06Result\x12:\n\x08severity\x18\x01 \x01(\x0e\x32(.apiextensions.fn.proto.v1beta1.Severity\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x06reason\x18\x03 \x01(\tH\x00\x88\x01\x01\x12;\n\x06target\x18\x04 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.TargetH\x01\x88\x01\x01\x42\t\n\x07_reasonB\t\n\x07_target\"\xcb\x01\n\tCondition\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x36\n\x06status\x18\x02 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.Status\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12\x14\n\x07message\x18\x04 \x01(\tH\x00\x88\x01\x01\x12;\n\x06target\x18\x05 \x01(\x0e\x32&.apiextensions.fn.proto.v1beta1.TargetH\x01\x88\x01\x01\x42\n\n\x08_messageB\t\n\x07_target*\xc0\x01\n\nCapability\x12\x1a\n\x16\x43\x41PABILITY_UNSPECIFIED\x10\x00\x12\x1b\n\x17\x43\x41PABILITY_CAPABILITIES\x10\x01\x12!\n\x1d\x43\x41PABILITY_REQUIRED_RESOURCES\x10\x02\x12\x1a\n\x16\x43\x41PABILITY_CREDENTIALS\x10\x03\x12\x19\n\x15\x43\x41PABILITY_CONDITIONS\x10\x04\x12\x1f\n\x1b\x43\x41PABILITY_REQUIRED_SCHEMAS\x10\x05*?\n\x05Ready\x12\x15\n\x11READY_UNSPECIFIED\x10\x00\x12\x0e\n\nREADY_TRUE\x10\x01\x12\x0f\n\x0bREADY_FALSE\x10\x02*c\n\x08Severity\x12\x18\n\x14SEVERITY_UNSPECIFIED\x10\x00\x12\x12\n\x0eSEVERITY_FATAL\x10\x01\x12\x14\n\x10SEVERITY_WARNING\x10\x02\x12\x13\n\x0fSEVERITY_NORMAL\x10\x03*V\n\x06Target\x12\x16\n\x12TARGET_UNSPECIFIED\x10\x00\x12\x14\n\x10TARGET_COMPOSITE\x10\x01\x12\x1e\n\x1aTARGET_COMPOSITE_AND_CLAIM\x10\x02*\x7f\n\x06Status\x12 \n\x1cSTATUS_CONDITION_UNSPECIFIED\x10\x00\x12\x1c\n\x18STATUS_CONDITION_UNKNOWN\x10\x01\x12\x19\n\x15STATUS_CONDITION_TRUE\x10\x02\x12\x1a\n\x16STATUS_CONDITION_FALSE\x10\x03\x32\x91\x01\n\x15\x46unctionRunnerService\x12x\n\x0bRunFunction\x12\x32.apiextensions.fn.proto.v1beta1.RunFunctionRequest\x1a\x33.apiextensions.fn.proto.v1beta1.RunFunctionResponse\"\x00\x42\x36Z4github.com/crossplane/crossplane/v2/proto/fn/v1beta1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -60,14 +60,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_STATE_RESOURCESENTRY']._serialized_options = b'8\001'
   _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._loaded_options = None
   _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._serialized_options = b'8\001'
-  _globals['_READY']._serialized_start=4026
-  _globals['_READY']._serialized_end=4089
-  _globals['_SEVERITY']._serialized_start=4091
-  _globals['_SEVERITY']._serialized_end=4190
-  _globals['_TARGET']._serialized_start=4192
-  _globals['_TARGET']._serialized_end=4278
-  _globals['_STATUS']._serialized_start=4280
-  _globals['_STATUS']._serialized_end=4407
+  _globals['_CAPABILITY']._serialized_start=4093
+  _globals['_CAPABILITY']._serialized_end=4285
+  _globals['_READY']._serialized_start=4287
+  _globals['_READY']._serialized_end=4350
+  _globals['_SEVERITY']._serialized_start=4352
+  _globals['_SEVERITY']._serialized_end=4451
+  _globals['_TARGET']._serialized_start=4453
+  _globals['_TARGET']._serialized_end=4539
+  _globals['_STATUS']._serialized_start=4541
+  _globals['_STATUS']._serialized_end=4668
   _globals['_RUNFUNCTIONREQUEST']._serialized_start=151
   _globals['_RUNFUNCTIONREQUEST']._serialized_end=1242
   _globals['_RUNFUNCTIONREQUEST_EXTRARESOURCESENTRY']._serialized_start=830
@@ -89,39 +91,39 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_RUNFUNCTIONRESPONSE']._serialized_start=1551
   _globals['_RUNFUNCTIONRESPONSE']._serialized_end=1992
   _globals['_REQUESTMETA']._serialized_start=1994
-  _globals['_REQUESTMETA']._serialized_end=2020
-  _globals['_REQUIREMENTS']._serialized_start=2023
-  _globals['_REQUIREMENTS']._serialized_end=2589
-  _globals['_REQUIREMENTS_EXTRARESOURCESENTRY']._serialized_start=2290
-  _globals['_REQUIREMENTS_EXTRARESOURCESENTRY']._serialized_end=2393
-  _globals['_REQUIREMENTS_RESOURCESENTRY']._serialized_start=2395
-  _globals['_REQUIREMENTS_RESOURCESENTRY']._serialized_end=2493
-  _globals['_REQUIREMENTS_SCHEMASENTRY']._serialized_start=2495
-  _globals['_REQUIREMENTS_SCHEMASENTRY']._serialized_end=2589
-  _globals['_SCHEMASELECTOR']._serialized_start=2591
-  _globals['_SCHEMASELECTOR']._serialized_end=2642
-  _globals['_SCHEMA']._serialized_start=2644
-  _globals['_SCHEMA']._serialized_end=2717
-  _globals['_RESOURCESELECTOR']._serialized_start=2720
-  _globals['_RESOURCESELECTOR']._serialized_end=2911
-  _globals['_MATCHLABELS']._serialized_start=2914
-  _globals['_MATCHLABELS']._serialized_end=3047
-  _globals['_MATCHLABELS_LABELSENTRY']._serialized_start=3002
-  _globals['_MATCHLABELS_LABELSENTRY']._serialized_end=3047
-  _globals['_RESPONSEMETA']._serialized_start=3049
-  _globals['_RESPONSEMETA']._serialized_end=3129
-  _globals['_STATE']._serialized_start=3132
-  _globals['_STATE']._serialized_end=3365
-  _globals['_STATE_RESOURCESENTRY']._serialized_start=3275
-  _globals['_STATE_RESOURCESENTRY']._serialized_end=3365
-  _globals['_RESOURCE']._serialized_start=3368
-  _globals['_RESOURCE']._serialized_end=3626
-  _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._serialized_start=3570
-  _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._serialized_end=3626
-  _globals['_RESULT']._serialized_start=3629
-  _globals['_RESULT']._serialized_end=3818
-  _globals['_CONDITION']._serialized_start=3821
-  _globals['_CONDITION']._serialized_end=4024
-  _globals['_FUNCTIONRUNNERSERVICE']._serialized_start=4410
-  _globals['_FUNCTIONRUNNERSERVICE']._serialized_end=4555
+  _globals['_REQUESTMETA']._serialized_end=2086
+  _globals['_REQUIREMENTS']._serialized_start=2089
+  _globals['_REQUIREMENTS']._serialized_end=2655
+  _globals['_REQUIREMENTS_EXTRARESOURCESENTRY']._serialized_start=2356
+  _globals['_REQUIREMENTS_EXTRARESOURCESENTRY']._serialized_end=2459
+  _globals['_REQUIREMENTS_RESOURCESENTRY']._serialized_start=2461
+  _globals['_REQUIREMENTS_RESOURCESENTRY']._serialized_end=2559
+  _globals['_REQUIREMENTS_SCHEMASENTRY']._serialized_start=2561
+  _globals['_REQUIREMENTS_SCHEMASENTRY']._serialized_end=2655
+  _globals['_SCHEMASELECTOR']._serialized_start=2657
+  _globals['_SCHEMASELECTOR']._serialized_end=2708
+  _globals['_SCHEMA']._serialized_start=2710
+  _globals['_SCHEMA']._serialized_end=2783
+  _globals['_RESOURCESELECTOR']._serialized_start=2786
+  _globals['_RESOURCESELECTOR']._serialized_end=2977
+  _globals['_MATCHLABELS']._serialized_start=2980
+  _globals['_MATCHLABELS']._serialized_end=3113
+  _globals['_MATCHLABELS_LABELSENTRY']._serialized_start=3068
+  _globals['_MATCHLABELS_LABELSENTRY']._serialized_end=3113
+  _globals['_RESPONSEMETA']._serialized_start=3115
+  _globals['_RESPONSEMETA']._serialized_end=3195
+  _globals['_STATE']._serialized_start=3198
+  _globals['_STATE']._serialized_end=3431
+  _globals['_STATE_RESOURCESENTRY']._serialized_start=3341
+  _globals['_STATE_RESOURCESENTRY']._serialized_end=3431
+  _globals['_RESOURCE']._serialized_start=3434
+  _globals['_RESOURCE']._serialized_end=3692
+  _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._serialized_start=3636
+  _globals['_RESOURCE_CONNECTIONDETAILSENTRY']._serialized_end=3692
+  _globals['_RESULT']._serialized_start=3695
+  _globals['_RESULT']._serialized_end=3884
+  _globals['_CONDITION']._serialized_start=3887
+  _globals['_CONDITION']._serialized_end=4090
+  _globals['_FUNCTIONRUNNERSERVICE']._serialized_start=4671
+  _globals['_FUNCTIONRUNNERSERVICE']._serialized_end=4816
 # @@protoc_insertion_point(module_scope)
