@@ -264,6 +264,37 @@ class TestRequest(unittest.TestCase):
                 dataclasses.asdict(case.want), dataclasses.asdict(got), case.reason
             )
 
+    def test_advertises_capabilities(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            want: bool
+
+        cases = [
+            TestCase(
+                reason="Should return False when no capabilities are advertised.",
+                req=fnv1.RunFunctionRequest(),
+                want=False,
+            ),
+            TestCase(
+                reason="Should return True when CAPABILITY_CAPABILITIES is present.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                        ],
+                    ),
+                ),
+                want=True,
+            ),
+        ]
+
+        for case in cases:
+            got = request.advertises_capabilities(case.req)
+            self.assertEqual(case.want, got, case.reason)
+
     def test_has_capability(self) -> None:
         @dataclasses.dataclass
         class TestCase:

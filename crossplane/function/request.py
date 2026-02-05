@@ -133,6 +133,29 @@ def get_credentials(req: fnv1.RunFunctionRequest, name: str) -> Credentials:
     return empty
 
 
+def advertises_capabilities(req: fnv1.RunFunctionRequest) -> bool:
+    """Check whether Crossplane advertises its capabilities.
+
+    Args:
+        req: The RunFunctionRequest to check.
+
+    Returns:
+        True if Crossplane advertises its capabilities.
+
+    Crossplane v2.2 and later advertise their capabilities in the request
+    metadata. If this returns False, the calling Crossplane predates capability
+    advertisement and has_capability will always return False, even for features
+    the older Crossplane does support.
+
+        if not request.advertises_capabilities(req):
+            # Pre-v2.2 Crossplane, capabilities are unknown.
+            ...
+        elif request.has_capability(req, fnv1.CAPABILITY_REQUIRED_SCHEMAS):
+            response.require_schema(rsp, "xr", xr_api_version, xr_kind)
+    """
+    return fnv1.CAPABILITY_CAPABILITIES in req.meta.capabilities
+
+
 def has_capability(
     req: fnv1.RunFunctionRequest,
     cap: fnv1.Capability.ValueType,
@@ -150,9 +173,9 @@ def has_capability(
     this to determine whether Crossplane will honor certain fields in their
     response, or populate certain fields in their request.
 
-    If CAPABILITY_CAPABILITIES is absent, the calling Crossplane predates
-    capability advertisement (pre-v2.2). In this case has_capability always
-    returns False, even for features the older Crossplane does support.
+    Use advertises_capabilities to check whether Crossplane advertises its
+    capabilities at all. If it doesn't, has_capability always returns False even
+    for features the older Crossplane does support.
 
         if request.has_capability(req, fnv1.CAPABILITY_REQUIRED_SCHEMAS):
             response.require_schema(rsp, "xr", xr_api_version, xr_kind)
