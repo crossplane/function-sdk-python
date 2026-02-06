@@ -264,6 +264,149 @@ class TestRequest(unittest.TestCase):
                 dataclasses.asdict(case.want), dataclasses.asdict(got), case.reason
             )
 
+    def test_advertises_capabilities(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            want: bool
+
+        cases = [
+            TestCase(
+                reason="Should return False when no capabilities are advertised.",
+                req=fnv1.RunFunctionRequest(),
+                want=False,
+            ),
+            TestCase(
+                reason="Should return True when CAPABILITY_CAPABILITIES is present.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                        ],
+                    ),
+                ),
+                want=True,
+            ),
+        ]
+
+        for case in cases:
+            got = request.advertises_capabilities(case.req)
+            self.assertEqual(case.want, got, case.reason)
+
+    def test_has_capability(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            cap: fnv1.Capability.ValueType
+            want: bool
+
+        cases = [
+            TestCase(
+                reason="Should return False when no capabilities are advertised.",
+                req=fnv1.RunFunctionRequest(),
+                cap=fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                want=False,
+            ),
+            TestCase(
+                reason="Should return True when the capability is present.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                        ],
+                    ),
+                ),
+                cap=fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                want=True,
+            ),
+            TestCase(
+                reason="Should return False when a different capability is present.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_CREDENTIALS,
+                        ],
+                    ),
+                ),
+                cap=fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                want=False,
+            ),
+        ]
+
+        for case in cases:
+            got = request.has_capability(case.req, case.cap)
+            self.assertEqual(case.want, got, case.reason)
+
+    def test_get_required_schema(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            name: str
+            want: dict | None
+
+        cases = [
+            TestCase(
+                reason="Should return None when schema name not found.",
+                req=fnv1.RunFunctionRequest(),
+                name="non-existent",
+                want=None,
+            ),
+            TestCase(
+                reason="Should return None when schema exists but is empty.",
+                req=fnv1.RunFunctionRequest(
+                    required_schemas={
+                        "empty-schema": fnv1.Schema(),
+                    }
+                ),
+                name="empty-schema",
+                want=None,
+            ),
+            TestCase(
+                reason="Should return schema when it exists.",
+                req=fnv1.RunFunctionRequest(
+                    required_schemas={
+                        "my-schema": fnv1.Schema(
+                            openapi_v3=resource.dict_to_struct(
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "spec": {
+                                            "type": "object",
+                                            "properties": {
+                                                "replicas": {"type": "integer"},
+                                            },
+                                        },
+                                    },
+                                }
+                            )
+                        ),
+                    }
+                ),
+                name="my-schema",
+                want={
+                    "type": "object",
+                    "properties": {
+                        "spec": {
+                            "type": "object",
+                            "properties": {
+                                "replicas": {"type": "integer"},
+                            },
+                        },
+                    },
+                },
+            ),
+        ]
+
+        for case in cases:
+            got = request.get_required_schema(case.req, case.name)
+            self.assertEqual(case.want, got, case.reason)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,15 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class Capability(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CAPABILITY_UNSPECIFIED: _ClassVar[Capability]
+    CAPABILITY_CAPABILITIES: _ClassVar[Capability]
+    CAPABILITY_REQUIRED_RESOURCES: _ClassVar[Capability]
+    CAPABILITY_CREDENTIALS: _ClassVar[Capability]
+    CAPABILITY_CONDITIONS: _ClassVar[Capability]
+    CAPABILITY_REQUIRED_SCHEMAS: _ClassVar[Capability]
+
 class Ready(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     READY_UNSPECIFIED: _ClassVar[Ready]
@@ -36,6 +45,12 @@ class Status(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     STATUS_CONDITION_UNKNOWN: _ClassVar[Status]
     STATUS_CONDITION_TRUE: _ClassVar[Status]
     STATUS_CONDITION_FALSE: _ClassVar[Status]
+CAPABILITY_UNSPECIFIED: Capability
+CAPABILITY_CAPABILITIES: Capability
+CAPABILITY_REQUIRED_RESOURCES: Capability
+CAPABILITY_CREDENTIALS: Capability
+CAPABILITY_CONDITIONS: Capability
+CAPABILITY_REQUIRED_SCHEMAS: Capability
 READY_UNSPECIFIED: Ready
 READY_TRUE: Ready
 READY_FALSE: Ready
@@ -52,7 +67,7 @@ STATUS_CONDITION_TRUE: Status
 STATUS_CONDITION_FALSE: Status
 
 class RunFunctionRequest(_message.Message):
-    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials", "required_resources")
+    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials", "required_resources", "required_schemas")
     class ExtraResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -74,6 +89,13 @@ class RunFunctionRequest(_message.Message):
         key: str
         value: Resources
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Resources, _Mapping]] = ...) -> None: ...
+    class RequiredSchemasEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: Schema
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Schema, _Mapping]] = ...) -> None: ...
     META_FIELD_NUMBER: _ClassVar[int]
     OBSERVED_FIELD_NUMBER: _ClassVar[int]
     DESIRED_FIELD_NUMBER: _ClassVar[int]
@@ -82,6 +104,7 @@ class RunFunctionRequest(_message.Message):
     EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     meta: RequestMeta
     observed: State
     desired: State
@@ -90,7 +113,8 @@ class RunFunctionRequest(_message.Message):
     extra_resources: _containers.MessageMap[str, Resources]
     credentials: _containers.MessageMap[str, Credentials]
     required_resources: _containers.MessageMap[str, Resources]
-    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ...) -> None: ...
+    required_schemas: _containers.MessageMap[str, Schema]
+    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ..., required_schemas: _Optional[_Mapping[str, Schema]] = ...) -> None: ...
 
 class Credentials(_message.Message):
     __slots__ = ("credential_data",)
@@ -136,13 +160,15 @@ class RunFunctionResponse(_message.Message):
     def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ..., output: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class RequestMeta(_message.Message):
-    __slots__ = ("tag",)
+    __slots__ = ("tag", "capabilities")
     TAG_FIELD_NUMBER: _ClassVar[int]
+    CAPABILITIES_FIELD_NUMBER: _ClassVar[int]
     tag: str
-    def __init__(self, tag: _Optional[str] = ...) -> None: ...
+    capabilities: _containers.RepeatedScalarFieldContainer[Capability]
+    def __init__(self, tag: _Optional[str] = ..., capabilities: _Optional[_Iterable[_Union[Capability, str]]] = ...) -> None: ...
 
 class Requirements(_message.Message):
-    __slots__ = ("extra_resources", "resources")
+    __slots__ = ("extra_resources", "resources", "schemas")
     class ExtraResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -157,11 +183,34 @@ class Requirements(_message.Message):
         key: str
         value: ResourceSelector
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ResourceSelector, _Mapping]] = ...) -> None: ...
+    class SchemasEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: SchemaSelector
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[SchemaSelector, _Mapping]] = ...) -> None: ...
     EXTRA_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     extra_resources: _containers.MessageMap[str, ResourceSelector]
     resources: _containers.MessageMap[str, ResourceSelector]
-    def __init__(self, extra_resources: _Optional[_Mapping[str, ResourceSelector]] = ..., resources: _Optional[_Mapping[str, ResourceSelector]] = ...) -> None: ...
+    schemas: _containers.MessageMap[str, SchemaSelector]
+    def __init__(self, extra_resources: _Optional[_Mapping[str, ResourceSelector]] = ..., resources: _Optional[_Mapping[str, ResourceSelector]] = ..., schemas: _Optional[_Mapping[str, SchemaSelector]] = ...) -> None: ...
+
+class SchemaSelector(_message.Message):
+    __slots__ = ("api_version", "kind")
+    API_VERSION_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    api_version: str
+    kind: str
+    def __init__(self, api_version: _Optional[str] = ..., kind: _Optional[str] = ...) -> None: ...
+
+class Schema(_message.Message):
+    __slots__ = ("openapi_v3",)
+    OPENAPI_V3_FIELD_NUMBER: _ClassVar[int]
+    openapi_v3: _struct_pb2.Struct
+    def __init__(self, openapi_v3: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class ResourceSelector(_message.Message):
     __slots__ = ("api_version", "kind", "match_name", "match_labels", "namespace")
