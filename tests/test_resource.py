@@ -29,6 +29,56 @@ class TestResource(unittest.TestCase):
     def setUp(self) -> None:
         logging.configure(level=logging.Level.DISABLED)
 
+    def test_update_status(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            r: fnv1.Resource
+            status: dict | pydantic.BaseModel
+            want: dict
+
+        cases = [
+            TestCase(
+                reason="Setting status from a dict should work.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status={"ready": True},
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"ready": True},
+                },
+            ),
+            TestCase(
+                reason="Setting status from a Pydantic model should work.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status=v1beta2.ForProvider(region="us-west-2"),
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"region": "us-west-2"},
+                },
+            ),
+            TestCase(
+                reason="Setting status on an empty resource should work.",
+                r=fnv1.Resource(),
+                status={"replicas": 3},
+                want={"status": {"replicas": 3}},
+            ),
+        ]
+
+        for case in cases:
+            resource.update_status(case.r, case.status)
+            got = resource.struct_to_dict(case.r.resource)
+            self.assertEqual(case.want, got, case.reason)
+
     def test_add(self) -> None:
         @dataclasses.dataclass
         class TestCase:
@@ -112,11 +162,17 @@ class TestResource(unittest.TestCase):
         @dataclasses.dataclass
         class TestCase:
             reason: str
-            res: structpb.Struct
+            res: structpb.Struct | fnv1.Resource | None
             typ: str
             want: resource.Condition
 
         cases = [
+            TestCase(
+                reason="Return an unknown condition if the resource is None.",
+                res=None,
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="Unknown"),
+            ),
             TestCase(
                 reason="Return an unknown condition if the resource has no status.",
                 res=resource.dict_to_struct({}),
@@ -196,6 +252,31 @@ class TestResource(unittest.TestCase):
                         tzinfo=datetime.UTC,
                     ),
                 ),
+            ),
+            TestCase(
+                reason="Unwrap an fnv1.Resource to get the condition from its Struct.",
+                res=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "status": {
+                                "conditions": [
+                                    {
+                                        "type": "Ready",
+                                        "status": "True",
+                                    }
+                                ]
+                            }
+                        }
+                    ),
+                ),
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="True"),
+            ),
+            TestCase(
+                reason="Return an unknown condition from an empty fnv1.Resource.",
+                res=fnv1.Resource(),
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="Unknown"),
             ),
         ]
 
@@ -323,6 +404,59 @@ class TestResource(unittest.TestCase):
         for case in cases:
             got = resource.struct_to_dict(case.s)
             self.assertEqual(case.want, got, "-want, +got")
+
+    def test_child_name(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            parts: list[str]
+            want: str
+
+        cases = [
+            TestCase(
+                reason="A short name should be joined with a hash suffix.",
+                parts=["my-xr", "bucket"],
+                want="my-xr-bucket-05ecb",
+            ),
+            TestCase(
+                reason="A single part should get a hash suffix.",
+                parts=["my-xr"],
+                want="my-xr-9d53f",
+            ),
+            TestCase(
+                reason="A long name should be truncated to fit within 63 characters.",
+                parts=["a" * 40, "b" * 40],
+                want="a" * 40 + "-" + "b" * 16 + "-" + "f5e42",
+            ),
+            TestCase(
+                reason="A name that would end with a trailing separator "
+                "after truncation should have the separator stripped.",
+                parts=["a" * 56 + "-", "x"],
+                # Without stripping, this would be "aaa..a--<hash>".
+                # The trailing separator from the truncation is stripped.
+                want="a" * 56 + "-" + "995eb",
+            ),
+            TestCase(
+                reason="The same inputs should always produce the same name.",
+                parts=["parent", "child"],
+                want="parent-child-2f0c9",
+            ),
+        ]
+
+        for case in cases:
+            got = resource.child_name(*case.parts)
+            self.assertEqual(case.want, got, case.reason)
+            self.assertLessEqual(len(got), 63, case.reason)
+
+    def test_child_name_deterministic(self) -> None:
+        a = resource.child_name("parent", "child")
+        b = resource.child_name("parent", "child")
+        self.assertEqual(a, b)
+
+    def test_child_name_unique(self) -> None:
+        a = resource.child_name("parent", "child-a")
+        b = resource.child_name("parent", "child-b")
+        self.assertNotEqual(a, b)
 
 
 if __name__ == "__main__":

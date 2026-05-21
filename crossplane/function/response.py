@@ -81,6 +81,44 @@ def fatal(rsp: fnv1.RunFunctionResponse, message: str) -> None:
     )
 
 
+_STATUS_MAP = {
+    "True": fnv1.STATUS_CONDITION_TRUE,
+    "False": fnv1.STATUS_CONDITION_FALSE,
+    "Unknown": fnv1.STATUS_CONDITION_UNKNOWN,
+}
+
+
+def set_conditions(
+    rsp: fnv1.RunFunctionResponse,
+    *conditions: resource.Condition,
+) -> None:
+    """Set one or more conditions on the composite resource (XR).
+
+    Args:
+        rsp: The RunFunctionResponse to update.
+        *conditions: The conditions to set.
+
+    Each condition is appended to ``rsp.conditions``. Crossplane uses the
+    conditions returned by a function to set custom status conditions on
+    the composite resource.
+
+    The ``last_transition_time`` field of each condition is ignored.
+    Crossplane sets the transition time itself.
+
+    Do not set the ``Ready`` condition type. Crossplane manages it based
+    on resource readiness.
+    """
+    for condition in conditions:
+        c = fnv1.Condition(
+            type=condition.typ,
+            status=_STATUS_MAP.get(condition.status, fnv1.STATUS_CONDITION_UNKNOWN),
+            reason=condition.reason or "",
+        )
+        if condition.message:
+            c.message = condition.message
+        rsp.conditions.append(c)
+
+
 def set_output(rsp: fnv1.RunFunctionResponse, output: dict | structpb.Struct) -> None:
     """Set the output field in a RunFunctionResponse for operation functions.
 

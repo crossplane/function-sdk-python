@@ -16,6 +16,7 @@
 
 import dataclasses
 import datetime
+import hashlib
 
 import pydantic
 from google.protobuf import json_format
@@ -59,6 +60,25 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
             raise TypeError(msg)
 
 
+def update_status(
+    r: fnv1.Resource,
+    status: dict | pydantic.BaseModel,
+) -> None:
+    """Update a resource's status.
+
+    Args:
+        r: A composite or composed resource to update.
+        status: The status to set, as a dictionary or Pydantic model.
+
+    Sets ``r.resource.status`` from the supplied status. When the status
+    is a Pydantic model, fields set to their default value are excluded,
+    matching the behavior of :func:`update`.
+    """
+    if isinstance(status, pydantic.BaseModel):
+        status = status.model_dump(exclude_defaults=True, warnings=False)
+    update(r, {"status": status})
+
+
 def dict_to_struct(d: dict) -> structpb.Struct:
     """Create a Struct well-known type from the supplied dict.
 
@@ -99,11 +119,17 @@ class Condition:
     last_transition_time: datetime.time | None = None
 
 
-def get_condition(resource: structpb.Struct, typ: str) -> Condition:
+def get_condition(
+    resource: structpb.Struct | fnv1.Resource | None,
+    typ: str,
+) -> Condition:
     """Get the supplied status condition of the supplied resource.
 
     Args:
-        resource: A Crossplane resource.
+        resource: A Crossplane resource. Can be a protobuf Struct (the raw
+            resource), an fnv1.Resource wrapper, or None. When an
+            fnv1.Resource is supplied, the Struct is extracted automatically.
+            When None is supplied, an unknown condition is returned.
         typ: The type of status condition to get (e.g. Ready).
 
     Returns:
@@ -111,8 +137,22 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
 
     A status condition is always returned. If the status condition isn't present
     in the supplied resource, a condition with status "Unknown" is returned.
+
+    Accepting fnv1.Resource and None makes it safe to pass the result of a
+    protobuf map ``.get()`` call directly. This avoids auto-vivification, which
+    silently inserts a default entry when using bracket access on a missing
+    key::
+
+        # Safe — .get() returns None without mutating the map.
+        c = get_condition(req.observed.resources.get("bucket"), "Ready")
+
+        # Unsafe — bracket access auto-vivifies an empty Resource.
+        c = get_condition(req.observed.resources["bucket"].resource, "Ready")
     """
     unknown = Condition(typ=typ, status="Unknown")
+
+    if isinstance(resource, fnv1.Resource):
+        resource = resource.resource
 
     if not resource or "status" not in resource:
         return unknown
@@ -140,3 +180,37 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
         return condition
 
     return unknown
+
+
+_DNS_LABEL_MAX = 63
+_HASH_LEN = 5
+
+
+def child_name(*parts: str, sep: str = "-") -> str:
+    """Build a deterministic, DNS-label-safe name for a child resource.
+
+    Args:
+        *parts: Name components to join (e.g. parent name, suffix).
+        sep: Separator between parts. Defaults to "-".
+
+    Returns:
+        A name that is at most 63 characters long.
+
+    Composition functions often derive child resource names from a parent
+    name and a discriminator. The resulting name must be a valid DNS label
+    (at most 63 characters). This function joins the parts, appends a
+    deterministic 5-character hash suffix for uniqueness, and truncates
+    the prefix to fit within the limit.
+
+    The hash suffix is always appended, even for short names, so that
+    names are visually consistent regardless of length::
+
+        child_name("my-xr", "bucket")       # "my-xr-bucket-a1b2c"
+        child_name("my-very-long-xr-name",
+                   "with-a-very-long-suffix") # truncated to 63 chars
+    """
+    full = sep.join(parts)
+    h = hashlib.sha256(full.encode()).hexdigest()[:_HASH_LEN]
+    max_prefix = _DNS_LABEL_MAX - _HASH_LEN - 1
+    prefix = full[:max_prefix].rstrip(sep)
+    return f"{prefix}{sep}{h}"
