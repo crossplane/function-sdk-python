@@ -71,6 +71,66 @@ class TestResponse(unittest.TestCase):
                 "-want, +got",
             )
 
+    def test_set_condition(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            condition: resource.Condition
+            want_type: str
+            want_status: fnv1.Status.ValueType
+            want_reason: str
+            want_message: str
+
+        cases = [
+            TestCase(
+                reason="A True condition should use STATUS_CONDITION_TRUE.",
+                condition=resource.Condition(
+                    typ="DatabaseReady",
+                    status="True",
+                    reason="Available",
+                    message="The database is ready",
+                ),
+                want_type="DatabaseReady",
+                want_status=fnv1.STATUS_CONDITION_TRUE,
+                want_reason="Available",
+                want_message="The database is ready",
+            ),
+            TestCase(
+                reason="A False condition should use STATUS_CONDITION_FALSE.",
+                condition=resource.Condition(
+                    typ="DatabaseReady",
+                    status="False",
+                    reason="Creating",
+                ),
+                want_type="DatabaseReady",
+                want_status=fnv1.STATUS_CONDITION_FALSE,
+                want_reason="Creating",
+                want_message="",
+            ),
+            TestCase(
+                reason="An Unknown condition should use STATUS_CONDITION_UNKNOWN.",
+                condition=resource.Condition(
+                    typ="DatabaseReady",
+                    status="Unknown",
+                ),
+                want_type="DatabaseReady",
+                want_status=fnv1.STATUS_CONDITION_UNKNOWN,
+                want_reason="",
+                want_message="",
+            ),
+        ]
+
+        for case in cases:
+            rsp = fnv1.RunFunctionResponse()
+            response.set_condition(rsp, case.condition)
+
+            self.assertEqual(1, len(rsp.conditions), case.reason)
+            got = rsp.conditions[0]
+            self.assertEqual(case.want_type, got.type, case.reason)
+            self.assertEqual(case.want_status, got.status, case.reason)
+            self.assertEqual(case.want_reason, got.reason, case.reason)
+            self.assertEqual(case.want_message, got.message, case.reason)
+
     def test_set_output(self) -> None:
         @dataclasses.dataclass
         class TestCase:
