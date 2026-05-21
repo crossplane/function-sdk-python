@@ -16,6 +16,7 @@
 
 import dataclasses
 import datetime
+import hashlib
 
 import pydantic
 from google.protobuf import json_format
@@ -140,3 +141,37 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
         return condition
 
     return unknown
+
+
+_DNS_LABEL_MAX = 63
+_HASH_LEN = 5
+
+
+def child_name(*parts: str, sep: str = "-") -> str:
+    """Build a deterministic, DNS-label-safe name for a child resource.
+
+    Args:
+        *parts: Name components to join (e.g. parent name, suffix).
+        sep: Separator between parts. Defaults to "-".
+
+    Returns:
+        A name that is at most 63 characters long.
+
+    Composition functions often derive child resource names from a parent
+    name and a discriminator. The resulting name must be a valid DNS label
+    (at most 63 characters). This function joins the parts, appends a
+    deterministic 5-character hash suffix for uniqueness, and truncates
+    the prefix to fit within the limit.
+
+    The hash suffix is always appended, even for short names, so that
+    names are visually consistent regardless of length::
+
+        child_name("my-xr", "bucket")       # "my-xr-bucket-a1b2c"
+        child_name("my-very-long-xr-name",
+                   "with-a-very-long-suffix") # truncated to 63 chars
+    """
+    full = sep.join(parts)
+    h = hashlib.sha256(full.encode()).hexdigest()[:_HASH_LEN]
+    max_prefix = _DNS_LABEL_MAX - _HASH_LEN - 1
+    prefix = full[:max_prefix].rstrip(sep)
+    return f"{prefix}{sep}{h}"
