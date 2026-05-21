@@ -109,14 +109,14 @@ def set_conditions(
     on resource readiness.
     """
     for condition in conditions:
-        rsp.conditions.append(
-            fnv1.Condition(
-                type=condition.typ,
-                status=_STATUS_MAP.get(condition.status, fnv1.STATUS_CONDITION_UNKNOWN),
-                reason=condition.reason or "",
-                message=condition.message or "",
-            )
+        c = fnv1.Condition(
+            type=condition.typ,
+            status=_STATUS_MAP.get(condition.status, fnv1.STATUS_CONDITION_UNKNOWN),
+            reason=condition.reason or "",
         )
+        if condition.message:
+            c.message = condition.message
+        rsp.conditions.append(c)
 
 
 def set_output(rsp: fnv1.RunFunctionResponse, output: dict | structpb.Struct) -> None:
