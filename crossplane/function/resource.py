@@ -119,11 +119,17 @@ class Condition:
     last_transition_time: datetime.time | None = None
 
 
-def get_condition(resource: structpb.Struct, typ: str) -> Condition:
+def get_condition(
+    resource: structpb.Struct | fnv1.Resource | None,
+    typ: str,
+) -> Condition:
     """Get the supplied status condition of the supplied resource.
 
     Args:
-        resource: A Crossplane resource.
+        resource: A Crossplane resource. Can be a protobuf Struct (the raw
+            resource), an fnv1.Resource wrapper, or None. When an
+            fnv1.Resource is supplied, the Struct is extracted automatically.
+            When None is supplied, an unknown condition is returned.
         typ: The type of status condition to get (e.g. Ready).
 
     Returns:
@@ -131,8 +137,22 @@ def get_condition(resource: structpb.Struct, typ: str) -> Condition:
 
     A status condition is always returned. If the status condition isn't present
     in the supplied resource, a condition with status "Unknown" is returned.
+
+    Accepting fnv1.Resource and None makes it safe to pass the result of a
+    protobuf map ``.get()`` call directly. This avoids auto-vivification, which
+    silently inserts a default entry when using bracket access on a missing
+    key::
+
+        # Safe — .get() returns None without mutating the map.
+        c = get_condition(req.observed.resources.get("bucket"), "Ready")
+
+        # Unsafe — bracket access auto-vivifies an empty Resource.
+        c = get_condition(req.observed.resources["bucket"].resource, "Ready")
     """
     unknown = Condition(typ=typ, status="Unknown")
+
+    if isinstance(resource, fnv1.Resource):
+        resource = resource.resource
 
     if not resource or "status" not in resource:
         return unknown

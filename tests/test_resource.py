@@ -162,11 +162,17 @@ class TestResource(unittest.TestCase):
         @dataclasses.dataclass
         class TestCase:
             reason: str
-            res: structpb.Struct
+            res: structpb.Struct | fnv1.Resource | None
             typ: str
             want: resource.Condition
 
         cases = [
+            TestCase(
+                reason="Return an unknown condition if the resource is None.",
+                res=None,
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="Unknown"),
+            ),
             TestCase(
                 reason="Return an unknown condition if the resource has no status.",
                 res=resource.dict_to_struct({}),
@@ -246,6 +252,31 @@ class TestResource(unittest.TestCase):
                         tzinfo=datetime.UTC,
                     ),
                 ),
+            ),
+            TestCase(
+                reason="Unwrap an fnv1.Resource to get the condition from its Struct.",
+                res=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "status": {
+                                "conditions": [
+                                    {
+                                        "type": "Ready",
+                                        "status": "True",
+                                    }
+                                ]
+                            }
+                        }
+                    ),
+                ),
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="True"),
+            ),
+            TestCase(
+                reason="Return an unknown condition from an empty fnv1.Resource.",
+                res=fnv1.Resource(),
+                typ="Ready",
+                want=resource.Condition(typ="Ready", status="Unknown"),
             ),
         ]
 
