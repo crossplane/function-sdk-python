@@ -60,6 +60,25 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
             raise TypeError(msg)
 
 
+def update_status(
+    r: fnv1.Resource,
+    status: dict | pydantic.BaseModel,
+) -> None:
+    """Update a resource's status.
+
+    Args:
+        r: A composite or composed resource to update.
+        status: The status to set, as a dictionary or Pydantic model.
+
+    Sets ``r.resource.status`` from the supplied status. When the status
+    is a Pydantic model, fields set to their default value are excluded,
+    matching the behavior of :func:`update`.
+    """
+    if isinstance(status, pydantic.BaseModel):
+        status = status.model_dump(exclude_defaults=True, warnings=False)
+    update(r, {"status": status})
+
+
 def dict_to_struct(d: dict) -> structpb.Struct:
     """Create a Struct well-known type from the supplied dict.
 

@@ -29,6 +29,56 @@ class TestResource(unittest.TestCase):
     def setUp(self) -> None:
         logging.configure(level=logging.Level.DISABLED)
 
+    def test_update_status(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            r: fnv1.Resource
+            status: dict | pydantic.BaseModel
+            want: dict
+
+        cases = [
+            TestCase(
+                reason="Setting status from a dict should work.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status={"ready": True},
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"ready": True},
+                },
+            ),
+            TestCase(
+                reason="Setting status from a Pydantic model should work.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status=v1beta2.ForProvider(region="us-west-2"),
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"region": "us-west-2"},
+                },
+            ),
+            TestCase(
+                reason="Setting status on an empty resource should work.",
+                r=fnv1.Resource(),
+                status={"replicas": 3},
+                want={"status": {"replicas": 3}},
+            ),
+        ]
+
+        for case in cases:
+            resource.update_status(case.r, case.status)
+            got = resource.struct_to_dict(case.r.resource)
+            self.assertEqual(case.want, got, case.reason)
+
     def test_add(self) -> None:
         @dataclasses.dataclass
         class TestCase:
