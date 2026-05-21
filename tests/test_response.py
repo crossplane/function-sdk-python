@@ -71,65 +71,71 @@ class TestResponse(unittest.TestCase):
                 "-want, +got",
             )
 
-    def test_set_condition(self) -> None:
+    def test_set_conditions(self) -> None:
         @dataclasses.dataclass
         class TestCase:
             reason: str
-            condition: resource.Condition
-            want_type: str
-            want_status: fnv1.Status.ValueType
-            want_reason: str
-            want_message: str
+            conditions: list[resource.Condition]
+            want_types: list[str]
+            want_statuses: list[fnv1.Status.ValueType]
+            want_reasons: list[str]
+            want_messages: list[str]
 
         cases = [
             TestCase(
-                reason="A True condition should use STATUS_CONDITION_TRUE.",
-                condition=resource.Condition(
-                    typ="DatabaseReady",
-                    status="True",
-                    reason="Available",
-                    message="The database is ready",
-                ),
-                want_type="DatabaseReady",
-                want_status=fnv1.STATUS_CONDITION_TRUE,
-                want_reason="Available",
-                want_message="The database is ready",
+                reason="A single True condition should work.",
+                conditions=[
+                    resource.Condition(
+                        typ="DatabaseReady",
+                        status="True",
+                        reason="Available",
+                        message="The database is ready",
+                    ),
+                ],
+                want_types=["DatabaseReady"],
+                want_statuses=[fnv1.STATUS_CONDITION_TRUE],
+                want_reasons=["Available"],
+                want_messages=["The database is ready"],
             ),
             TestCase(
-                reason="A False condition should use STATUS_CONDITION_FALSE.",
-                condition=resource.Condition(
-                    typ="DatabaseReady",
-                    status="False",
-                    reason="Creating",
-                ),
-                want_type="DatabaseReady",
-                want_status=fnv1.STATUS_CONDITION_FALSE,
-                want_reason="Creating",
-                want_message="",
-            ),
-            TestCase(
-                reason="An Unknown condition should use STATUS_CONDITION_UNKNOWN.",
-                condition=resource.Condition(
-                    typ="DatabaseReady",
-                    status="Unknown",
-                ),
-                want_type="DatabaseReady",
-                want_status=fnv1.STATUS_CONDITION_UNKNOWN,
-                want_reason="",
-                want_message="",
+                reason="Multiple conditions should all be appended.",
+                conditions=[
+                    resource.Condition(
+                        typ="DatabaseReady",
+                        status="True",
+                        reason="Available",
+                    ),
+                    resource.Condition(
+                        typ="CacheReady",
+                        status="False",
+                        reason="Creating",
+                    ),
+                    resource.Condition(
+                        typ="NetworkReady",
+                        status="Unknown",
+                    ),
+                ],
+                want_types=["DatabaseReady", "CacheReady", "NetworkReady"],
+                want_statuses=[
+                    fnv1.STATUS_CONDITION_TRUE,
+                    fnv1.STATUS_CONDITION_FALSE,
+                    fnv1.STATUS_CONDITION_UNKNOWN,
+                ],
+                want_reasons=["Available", "Creating", ""],
+                want_messages=["", "", ""],
             ),
         ]
 
         for case in cases:
             rsp = fnv1.RunFunctionResponse()
-            response.set_condition(rsp, case.condition)
+            response.set_conditions(rsp, *case.conditions)
 
-            self.assertEqual(1, len(rsp.conditions), case.reason)
-            got = rsp.conditions[0]
-            self.assertEqual(case.want_type, got.type, case.reason)
-            self.assertEqual(case.want_status, got.status, case.reason)
-            self.assertEqual(case.want_reason, got.reason, case.reason)
-            self.assertEqual(case.want_message, got.message, case.reason)
+            self.assertEqual(len(case.conditions), len(rsp.conditions), case.reason)
+            for i, got in enumerate(rsp.conditions):
+                self.assertEqual(case.want_types[i], got.type, case.reason)
+                self.assertEqual(case.want_statuses[i], got.status, case.reason)
+                self.assertEqual(case.want_reasons[i], got.reason, case.reason)
+                self.assertEqual(case.want_messages[i], got.message, case.reason)
 
     def test_set_output(self) -> None:
         @dataclasses.dataclass

@@ -81,40 +81,42 @@ def fatal(rsp: fnv1.RunFunctionResponse, message: str) -> None:
     )
 
 
-def set_condition(
+_STATUS_MAP = {
+    "True": fnv1.STATUS_CONDITION_TRUE,
+    "False": fnv1.STATUS_CONDITION_FALSE,
+    "Unknown": fnv1.STATUS_CONDITION_UNKNOWN,
+}
+
+
+def set_conditions(
     rsp: fnv1.RunFunctionResponse,
-    condition: resource.Condition,
+    *conditions: resource.Condition,
 ) -> None:
-    """Set a condition on the composite resource (XR).
+    """Set one or more conditions on the composite resource (XR).
 
     Args:
         rsp: The RunFunctionResponse to update.
-        condition: The condition to set.
+        *conditions: The conditions to set.
 
-    The condition is appended to ``rsp.conditions``. Crossplane uses the
+    Each condition is appended to ``rsp.conditions``. Crossplane uses the
     conditions returned by a function to set custom status conditions on
     the composite resource.
 
-    The ``last_transition_time`` field of the condition is ignored.
+    The ``last_transition_time`` field of each condition is ignored.
     Crossplane sets the transition time itself.
 
     Do not set the ``Ready`` condition type. Crossplane manages it based
     on resource readiness.
     """
-    status_map = {
-        "True": fnv1.STATUS_CONDITION_TRUE,
-        "False": fnv1.STATUS_CONDITION_FALSE,
-        "Unknown": fnv1.STATUS_CONDITION_UNKNOWN,
-    }
-
-    rsp.conditions.append(
-        fnv1.Condition(
-            type=condition.typ,
-            status=status_map.get(condition.status, fnv1.STATUS_CONDITION_UNKNOWN),
-            reason=condition.reason or "",
-            message=condition.message or "",
+    for condition in conditions:
+        rsp.conditions.append(
+            fnv1.Condition(
+                type=condition.typ,
+                status=_STATUS_MAP.get(condition.status, fnv1.STATUS_CONDITION_UNKNOWN),
+                reason=condition.reason or "",
+                message=condition.message or "",
+            )
         )
-    )
 
 
 def set_output(rsp: fnv1.RunFunctionResponse, output: dict | structpb.Struct) -> None:
