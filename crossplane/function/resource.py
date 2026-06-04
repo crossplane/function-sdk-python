@@ -40,12 +40,13 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
     """
     match source:
         case pydantic.BaseModel():
-            data = source.model_dump(exclude_defaults=True, warnings=False)
-            # In Pydantic, exclude_defaults=True in model_dump excludes fields
-            # that have their value equal to the default. If a field like
-            # apiVersion is set to its default value 's3.aws.upbound.io/v1beta2'
-            # (and not explicitly provided during initialization), it will be
-            # excluded from the serialized output.
+            # exclude_unset emits only the fields the caller explicitly set.
+            # Crossplane treats desired resources as server-side apply intent,
+            # so a function should own exactly the fields it has an opinion
+            # about and leave the rest to the API server.
+            data = source.model_dump(exclude_unset=True, warnings=False)
+            # apiVersion and kind identify the resource but are rarely passed
+            # as kwargs, so they're usually unset. Add them back explicitly.
             data["apiVersion"] = source.apiVersion
             data["kind"] = source.kind
             r.resource.update(data)
@@ -71,11 +72,11 @@ def update_status(
         status: The status to set, as a dictionary or Pydantic model.
 
     Sets ``r.resource.status`` from the supplied status. When the status
-    is a Pydantic model, fields set to their default value are excluded,
-    matching the behavior of :func:`update`.
+    is a Pydantic model, fields the caller didn't explicitly set are
+    excluded, matching the behavior of :func:`update`.
     """
     if isinstance(status, pydantic.BaseModel):
-        status = status.model_dump(exclude_defaults=True, warnings=False)
+        status = status.model_dump(exclude_unset=True, warnings=False)
     update(r, {"status": status})
 
 

@@ -22,7 +22,10 @@ from google.protobuf import struct_pb2 as structpb
 
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
 from crossplane.function import logging, resource
-from tests.testdata.models.io.upbound.aws.s3 import v1beta2
+from tests.testdata.models.io.upbound.aws.s3 import v1beta2 as s3v1beta2
+from tests.testdata.models.io.upbound.m.aws.iam.accountalias import (
+    v1beta1 as accountaliasv1beta1,
+)
 
 
 class TestResource(unittest.TestCase):
@@ -59,11 +62,26 @@ class TestResource(unittest.TestCase):
                         {"apiVersion": "example.org", "kind": "XR"}
                     ),
                 ),
-                status=v1beta2.ForProvider(region="us-west-2"),
+                status=s3v1beta2.ForProvider(region="us-west-2"),
                 want={
                     "apiVersion": "example.org",
                     "kind": "XR",
                     "status": {"region": "us-west-2"},
+                },
+            ),
+            TestCase(
+                reason="Fields the caller set should be kept, while unset "
+                "fields are omitted.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status=s3v1beta2.ForProvider(region="us-west-2", forceDestroy=False),
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"region": "us-west-2", "forceDestroy": False},
                 },
             ),
             TestCase(
@@ -131,11 +149,16 @@ class TestResource(unittest.TestCase):
                 ),
             ),
             TestCase(
-                reason="Updating from a Pydantic model should work.",
+                # This model uses the default_factory form that older
+                # datamodel-code-generator emits for fields with an object
+                # default. providerConfigRef has such a default but isn't set
+                # here, so it must not be emitted.
+                reason="Updating from a Pydantic model with default_factory "
+                "object defaults should omit unset fields.",
                 r=fnv1.Resource(),
-                source=v1beta2.Bucket(
-                    spec=v1beta2.Spec(
-                        forProvider=v1beta2.ForProvider(region="us-west-2"),
+                source=s3v1beta2.Bucket(
+                    spec=s3v1beta2.Spec(
+                        forProvider=s3v1beta2.ForProvider(region="us-west-2"),
                     ),
                 ),
                 want=fnv1.Resource(
@@ -144,6 +167,53 @@ class TestResource(unittest.TestCase):
                             "apiVersion": "s3.aws.upbound.io/v1beta2",
                             "kind": "Bucket",
                             "spec": {"forProvider": {"region": "us-west-2"}},
+                        }
+                    ),
+                ),
+            ),
+            TestCase(
+                # This model uses the validate_default=True form that newer
+                # datamodel-code-generator emits for fields with an object
+                # default. providerConfigRef has such a default but isn't set
+                # here, so it must not be emitted.
+                reason="Updating from a Pydantic model with validate_default "
+                "object defaults should omit unset fields.",
+                r=fnv1.Resource(),
+                source=accountaliasv1beta1.AccountAlias(
+                    spec=accountaliasv1beta1.Spec(forProvider={"x": "y"}),
+                ),
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "apiVersion": "iam.aws.m.upbound.io/v1beta1",
+                            "kind": "AccountAlias",
+                            "spec": {"forProvider": {"x": "y"}},
+                        }
+                    ),
+                ),
+            ),
+            TestCase(
+                # managementPolicies defaults to ["*"] and is set to ["*"]
+                # here. A field the caller sets is one it has an opinion about
+                # and should own, even when the value equals the default.
+                reason="A field the caller explicitly set to its default value "
+                "should be emitted.",
+                r=fnv1.Resource(),
+                source=accountaliasv1beta1.AccountAlias(
+                    spec=accountaliasv1beta1.Spec(
+                        forProvider={"x": "y"},
+                        managementPolicies=["*"],
+                    ),
+                ),
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "apiVersion": "iam.aws.m.upbound.io/v1beta1",
+                            "kind": "AccountAlias",
+                            "spec": {
+                                "forProvider": {"x": "y"},
+                                "managementPolicies": ["*"],
+                            },
                         }
                     ),
                 ),
