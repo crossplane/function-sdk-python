@@ -22,6 +22,7 @@ from google.protobuf import struct_pb2 as structpb
 
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
 from crossplane.function import logging, resource
+from tests.testdata.models.io.k8s.api.resource import v1 as resourcev1
 from tests.testdata.models.io.upbound.aws.s3 import v1beta2 as s3v1beta2
 from tests.testdata.models.io.upbound.m.aws.iam.accountalias import (
     v1beta1 as accountaliasv1beta1,
@@ -82,6 +83,21 @@ class TestResource(unittest.TestCase):
                     "apiVersion": "example.org",
                     "kind": "XR",
                     "status": {"region": "us-west-2", "forceDestroy": False},
+                },
+            ),
+            TestCase(
+                reason="Setting status from a Pydantic model with keyword-"
+                "aliased fields should emit the fields under their aliases.",
+                r=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {"apiVersion": "example.org", "kind": "XR"}
+                    ),
+                ),
+                status=resourcev1.DeviceAttribute(**{"bool": True}),
+                want={
+                    "apiVersion": "example.org",
+                    "kind": "XR",
+                    "status": {"bool": True},
                 },
             ),
             TestCase(
@@ -193,6 +209,51 @@ class TestResource(unittest.TestCase):
                 ),
             ),
             TestCase(
+                # datamodel-code-generator can't name a field bool or int, so
+                # it emits bool_ aliased to bool and int_ aliased to int. The
+                # alias is the resource's real wire name, so update must emit
+                # fields under their aliases.
+                reason="Updating from a Pydantic model with keyword-aliased "
+                "fields should emit the fields under their aliases.",
+                r=fnv1.Resource(),
+                source=resourcev1.ResourceSlice(
+                    spec=resourcev1.Spec(
+                        devices=[
+                            resourcev1.Device(
+                                name="gpu",
+                                attributes={
+                                    "powered": resourcev1.DeviceAttribute(
+                                        **{"bool": True},
+                                    ),
+                                    "lanes": resourcev1.DeviceAttribute(
+                                        **{"int": 16},
+                                    ),
+                                },
+                            ),
+                        ],
+                    ),
+                ),
+                want=fnv1.Resource(
+                    resource=resource.dict_to_struct(
+                        {
+                            "apiVersion": "resource.k8s.io/v1",
+                            "kind": "ResourceSlice",
+                            "spec": {
+                                "devices": [
+                                    {
+                                        "name": "gpu",
+                                        "attributes": {
+                                            "powered": {"bool": True},
+                                            "lanes": {"int": 16},
+                                        },
+                                    },
+                                ],
+                            },
+                        }
+                    ),
+                ),
+            ),
+            TestCase(
                 # managementPolicies defaults to ["*"] and is set to ["*"]
                 # here. A field the caller sets is one it has an opinion about
                 # and should own, even when the value equals the default.
@@ -227,6 +288,66 @@ class TestResource(unittest.TestCase):
                 json_format.MessageToDict(case.r),
                 "-want, +got",
             )
+
+    def test_model_round_trip(self) -> None:
+        # A function reads an observed resource (wire names), validates it into
+        # a model, then writes it back via update. A field that goes in under
+        # its wire name must come back out under the same wire name. This pins
+        # the property the by_alias fix exists to guarantee: validation accepts
+        # the alias, and serialization must emit the alias, not the Python
+        # attribute name. It does not assert anything about fields the model
+        # doesn't define (pydantic drops them) or value types (Struct coerces
+        # numbers to float).
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            # The resource as it arrives from Crossplane, using wire names.
+            observed: dict
+            # The model type to validate the observed resource into.
+            model: type[pydantic.BaseModel]
+
+        cases = [
+            TestCase(
+                reason="A model with keyword-aliased fields should round-trip "
+                "through validation and update with its fields under the same "
+                "wire names (bool, int) they arrived under.",
+                observed={
+                    "apiVersion": "resource.k8s.io/v1",
+                    "kind": "ResourceSlice",
+                    "spec": {
+                        "devices": [
+                            {
+                                "name": "gpu",
+                                "attributes": {
+                                    "powered": {"bool": True},
+                                    "lanes": {"int": 16},
+                                    "model": {"string": "h100"},
+                                },
+                            },
+                        ],
+                    },
+                },
+                model=resourcev1.ResourceSlice,
+            ),
+            TestCase(
+                reason="A model with only ordinary fields should round-trip unchanged.",
+                observed={
+                    "apiVersion": "s3.aws.upbound.io/v1beta2",
+                    "kind": "Bucket",
+                    "spec": {"forProvider": {"region": "us-west-2"}},
+                },
+                model=s3v1beta2.Bucket,
+            ),
+        ]
+
+        for case in cases:
+            # Mimic the SDK flow: a function reads an observed resource (wire
+            # names), validates it into a model, then writes it back out.
+            m = case.model.model_validate(case.observed)
+            r = fnv1.Resource()
+            resource.update(r, m)
+            got = resource.struct_to_dict(r.resource)
+            self.assertEqual(case.observed, got, case.reason)
 
     def test_get_condition(self) -> None:
         @dataclasses.dataclass

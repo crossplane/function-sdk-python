@@ -44,7 +44,15 @@ def update(r: fnv1.Resource, source: dict | structpb.Struct | pydantic.BaseModel
             # Crossplane treats desired resources as server-side apply intent,
             # so a function should own exactly the fields it has an opinion
             # about and leave the rest to the API server.
-            data = source.model_dump(exclude_unset=True, warnings=False)
+            #
+            # by_alias emits each field under its alias, which is its real
+            # wire name. datamodel-code-generator aliases fields whose KRM
+            # name collides with a Python keyword or builtin (e.g. it emits a
+            # bool_ attribute aliased to bool, continue_ aliased to continue).
+            # Without by_alias those fields serialize under the Python name and
+            # don't match the resource's schema. It's a no-op for ordinary
+            # fields, which have no alias.
+            data = source.model_dump(exclude_unset=True, by_alias=True, warnings=False)
             # apiVersion and kind identify the resource but are rarely passed
             # as kwargs, so they're usually unset. Add them back explicitly.
             data["apiVersion"] = source.apiVersion
@@ -73,10 +81,11 @@ def update_status(
 
     Sets ``r.resource.status`` from the supplied status. When the status
     is a Pydantic model, fields the caller didn't explicitly set are
-    excluded, matching the behavior of :func:`update`.
+    excluded and aliased fields are emitted under their wire names,
+    matching the behavior of :func:`update`.
     """
     if isinstance(status, pydantic.BaseModel):
-        status = status.model_dump(exclude_unset=True, warnings=False)
+        status = status.model_dump(exclude_unset=True, by_alias=True, warnings=False)
     update(r, {"status": status})
 
 
