@@ -70,7 +70,7 @@ def load_credentials(tls_certs_dir: str) -> grpc.ServerCredentials:
 
 
 def serve(
-    function: grpcv1.FunctionRunnerService,
+    function: grpcv1.FunctionRunnerServiceServicer,
     address: str,
     *,
     creds: grpc.ServerCredentials,
@@ -134,20 +134,20 @@ def serve(
         loop.close()
 
 
-class BetaFunctionRunner(grpcv1beta1.FunctionRunnerService):
+class BetaFunctionRunner(grpcv1beta1.FunctionRunnerServiceServicer):
     """A BetaFunctionRunner handles beta gRPC RunFunctionRequests.
 
-    It handles requests by passing them to a wrapped v1.FunctionRunnerService.
+    It handles requests by passing them to a wrapped v1.FunctionRunnerServiceServicer.
     Incoming v1beta1 requests are converted to v1 by round-tripping them through
     serialization. Outgoing requests are converted from v1 to v1beta1 the same
     way.
     """
 
-    def __init__(self, wrapped: grpcv1.FunctionRunnerService):
+    def __init__(self, wrapped: grpcv1.FunctionRunnerServiceServicer):
         """Create a new BetaFunctionRunner."""
         self.wrapped = wrapped
 
-    async def RunFunction(  # noqa: N802  # gRPC requires this name.
+    async def RunFunction(  # noqa: N802  # gRPC requires this name. # pyright: ignore[reportIncompatibleMethodOverride]
         self, req: fnv1beta1.RunFunctionRequest, context: grpc.aio.ServicerContext
     ) -> fnv1beta1.RunFunctionResponse:
         """Run the underlying function."""
