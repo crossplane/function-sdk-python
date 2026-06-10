@@ -163,13 +163,16 @@ def require_resources(  # noqa: PLR0913
         namespace: The namespace to search in (optional).
 
     Raises:
-        ValueError: If both match_name and match_labels are provided, or neither.
+        ValueError: If both match_name and match_labels are provided.
 
     This tells Crossplane to fetch the specified resources and include them
     in the next call to the function in req.required_resources[name].
+
+    If neither match_name nor match_labels is provided, all resources of the
+    given api_version and kind are matched.
     """
-    if (match_name is None) == (match_labels is None):
-        msg = "Exactly one of match_name or match_labels must be provided"
+    if match_name is not None and match_labels is not None:
+        msg = "match_name and match_labels are mutually exclusive"
         raise ValueError(msg)
 
     selector = fnv1.ResourceSelector(
