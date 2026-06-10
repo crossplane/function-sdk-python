@@ -233,6 +233,21 @@ class TestResponse(unittest.TestCase):
                     match_name="worker-1",
                 ),
             ),
+            TestCase(
+                reason="Should match all resources of a kind with no match field.",
+                rsp=fnv1.RunFunctionResponse(),
+                name="all-pods",
+                api_version="v1",
+                kind="Pod",
+                match_name=None,
+                match_labels=None,
+                namespace="default",
+                want_selector=fnv1.ResourceSelector(
+                    api_version="v1",
+                    kind="Pod",
+                    namespace="default",
+                ),
+            ),
         ]
 
         for case in cases:
@@ -268,17 +283,6 @@ class TestResponse(unittest.TestCase):
                 "Pod",
                 match_name="pod-name",
                 match_labels={"app": "test"},
-            )
-
-        # Should raise ValueError if neither match_name nor match_labels are provided
-        with self.assertRaises(ValueError):
-            response.require_resources(
-                rsp,
-                "test",
-                "v1",
-                "Pod",
-                match_name=None,
-                match_labels=None,
             )
 
     def test_require_schema(self) -> None:
