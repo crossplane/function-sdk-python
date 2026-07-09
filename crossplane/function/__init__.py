@@ -55,8 +55,10 @@ class MyFunction(Runtime):
 The `RunFunctionRequest` and `RunFunctionResponse` types are generated from
 proto3 schema definitions. See the proto modules for API reference:
 
-- [`proto.v1.run_function_pb2`][crossplane.function.proto.v1.run_function_pb2] — Current API
-- [`proto.v1beta1.run_function_pb2`][crossplane.function.proto.v1beta1.run_function_pb2] — Legacy API
+- [`proto.v1.run_function_pb2`][crossplane.function.proto.v1.run_function_pb2]
+  — Current API
+- [`proto.v1beta1.run_function_pb2`][crossplane.function.proto.v1beta1.run_function_pb2]
+  — Legacy API
 
 Proto-generated fields behave like standard Python types but follow
 [protobuf Python conventions](https://protobuf.dev/reference/python/python-generated/).
