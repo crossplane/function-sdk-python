@@ -69,10 +69,12 @@ def standard_options(func: F) -> F:
         is_flag=True,
         envvar="INSECURE",
         help="Run without mTLS credentials. "
-        "If you supply this flag --tls-certs-dir will be ignored.",
+        "If you supply this flag --tls-server-certs-dir will be ignored.",
     )
     @click.option(
+        "--tls-server-certs-dir",
         "--tls-certs-dir",
+        "tls_certs_dir",
         envvar="TLS_SERVER_CERTS_DIR",
         help="Serve using mTLS certificates.",
     )
