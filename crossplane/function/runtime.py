@@ -95,7 +95,10 @@ def serve(
     are supplied.
     """
     # Define the loop before the server so everything uses the same loop.
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
 
     server = grpc.aio.server(options=options)
 
