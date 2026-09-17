@@ -21,7 +21,7 @@ dependencies = [
   "click==8.*",
   "grpcio==1.84.0",
   "grpcio-reflection==1.*",
-  "protobuf==7.36.1", # Must be compatible with grpcio-tools.
+  "protobuf==7.36.2", # Must be compatible with grpcio-tools.
   "pydantic==2.*",
   "structlog==26.*",
 ]
