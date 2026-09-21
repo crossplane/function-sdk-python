@@ -61,7 +61,8 @@ def standard_options(func: F) -> F:
         type=int,
         default=None,
         envvar="MAX_SEND_MESSAGE_SIZE",
-        help="Maximum size of sent gRPC messages in MB. Defaults to --max-grpc-message-size.",
+        help="Maximum size of sent gRPC messages in MB. "
+        "Defaults to --max-recv-message-size.",
     )
     @click.option(
         "--max-recv-message-size",
