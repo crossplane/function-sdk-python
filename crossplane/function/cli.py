@@ -57,11 +57,20 @@ def standard_options(func: F) -> F:
     """Apply the standard Composition Function CLI options to a Click command."""
 
     @click.option(
+        "--max-send-message-size",
+        type=int,
+        default=None,
+        envvar="MAX_SEND_MESSAGE_SIZE",
+        help="Maximum size of sent gRPC messages in MB. "
+        "Defaults to --max-recv-message-size.",
+    )
+    @click.option(
         "--max-recv-message-size",
+        "--max-grpc-message-size",
         type=int,
         default=DEFAULT_MAX_RECV_MESSAGE_SIZE,
         show_default=True,
-        envvar="MAX_RECV_MESSAGE_SIZE",
+        envvar=["MAX_RECV_MESSAGE_SIZE", "MAX_GRPC_MESSAGE_SIZE"],
         help="Maximum size of received gRPC messages in MB.",
     )
     @click.option(
@@ -107,15 +116,18 @@ def run(  # noqa: PLR0913
     tls_certs_dir: str | None,
     insecure: bool,
     max_recv_message_size: int,
+    max_send_message_size: int | None,
 ) -> None:
     """Start a composition function gRPC server with standard options."""
     level = logging.Level.DEBUG if debug else logging.Level.INFO
     logging.configure(level=level)
 
-    size_bytes = max_recv_message_size * 1024 * 1024
+    if max_send_message_size is None:
+        max_send_message_size = max_recv_message_size
+
     options = [
-        ("grpc.max_receive_message_length", size_bytes),
-        ("grpc.max_send_message_length", size_bytes),
+        ("grpc.max_receive_message_length", max_recv_message_size * 1024 * 1024),
+        ("grpc.max_send_message_length", max_send_message_size * 1024 * 1024),
     ]
 
     runtime.serve(
