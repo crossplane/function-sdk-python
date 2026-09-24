@@ -27,6 +27,43 @@ from crossplane.function.proto.v1 import run_function_pb2 as fnv1
 class TestResponse(unittest.TestCase):
     def setUp(self) -> None:
         logging.configure(level=logging.Level.DISABLED)
+        self._saved_default_ttl = response.get_default_ttl()
+
+    def tearDown(self) -> None:
+        response.set_default_ttl(self._saved_default_ttl)
+
+    def test_default_ttl(self) -> None:
+        ttl = datetime.timedelta(hours=2)
+        response.set_default_ttl(ttl)
+        self.assertEqual(ttl, response.get_default_ttl())
+
+    def test_to_uses_process_default_ttl(self) -> None:
+        response.set_default_ttl(datetime.timedelta(minutes=5))
+        req = fnv1.RunFunctionRequest(meta=fnv1.RequestMeta(tag="hi"))
+        got = response.to(req)
+        want = fnv1.RunFunctionResponse(
+            meta=fnv1.ResponseMeta(tag="hi", ttl=durationpb.Duration(seconds=60 * 5)),
+            desired=req.desired,
+            context=req.context,
+        )
+        self.assertEqual(
+            json_format.MessageToJson(want, sort_keys=True),
+            json_format.MessageToJson(got, sort_keys=True),
+        )
+
+    def test_to_explicit_ttl_overrides_process_default(self) -> None:
+        response.set_default_ttl(datetime.timedelta(hours=1))
+        req = fnv1.RunFunctionRequest(meta=fnv1.RequestMeta(tag="hi"))
+        got = response.to(req, ttl=datetime.timedelta(minutes=3))
+        want = fnv1.RunFunctionResponse(
+            meta=fnv1.ResponseMeta(tag="hi", ttl=durationpb.Duration(seconds=60 * 3)),
+            desired=req.desired,
+            context=req.context,
+        )
+        self.assertEqual(
+            json_format.MessageToJson(want, sort_keys=True),
+            json_format.MessageToJson(got, sort_keys=True),
+        )
 
     def test_to(self) -> None:
         @dataclasses.dataclass
