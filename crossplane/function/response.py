@@ -25,16 +25,35 @@ from crossplane.function import resource
 """The default TTL for which a RunFunctionResponse may be cached."""
 DEFAULT_TTL = datetime.timedelta(minutes=1)
 
+_default_ttl = DEFAULT_TTL
+
+
+def get_default_ttl() -> datetime.timedelta:
+    """Return the process-wide default TTL for RunFunctionResponses."""
+    return _default_ttl
+
+
+def set_default_ttl(ttl: datetime.timedelta) -> None:
+    """Set the process-wide default TTL for RunFunctionResponses.
+
+    Args:
+        ttl: How long Crossplane may optionally cache responses when no explicit
+            TTL is passed to :func:`to`.
+    """
+    global _default_ttl  # noqa: PLW0603
+    _default_ttl = ttl
+
 
 def to(
     req: fnv1.RunFunctionRequest,
-    ttl: datetime.timedelta = DEFAULT_TTL,
+    ttl: datetime.timedelta | None = None,
 ) -> fnv1.RunFunctionResponse:
     """Create a response to the supplied request.
 
     Args:
         req: The request to respond to.
-        ttl: How long Crossplane may optionally cache the response.
+        ttl: How long Crossplane may optionally cache the response. Defaults to
+            the process-wide default TTL set by :func:`set_default_ttl`.
 
     Returns:
         A response to the supplied request.
@@ -42,6 +61,9 @@ def to(
     The request's tag, desired resources, and context is automatically copied to
     the response. Using response.to is a good pattern to ensure
     """
+    if ttl is None:
+        ttl = get_default_ttl()
+
     dttl = durationpb.Duration()
     dttl.FromTimedelta(ttl)
     return fnv1.RunFunctionResponse(

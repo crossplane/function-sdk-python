@@ -17,6 +17,11 @@
 Provides reusable options and a run helper so that every composition
 function shares a standard set of flags, environment variables, and defaults.
 
+Standard flags include ``--address``, ``--debug``, ``--insecure``,
+``--tls-server-certs-dir``, gRPC message size limits, and ``--ttl``. Each
+option also supports a corresponding environment variable (for example
+``ADDRESS``, ``DEBUG``, ``TTL``).
+
 Usage in a function's main.py::
 
     import click
@@ -38,19 +43,95 @@ To add custom options, stack them with the decorator::
         sdkcli.run(runner, **kwargs)
 """
 
+import datetime
 import functools
+import re
 from collections.abc import Callable
 from typing import TypeVar
 
 import click
 
-from crossplane.function import logging, runtime
+from crossplane.function import logging, response, runtime
 from crossplane.function.proto.v1 import run_function_pb2_grpc as grpcv1
 
 F = TypeVar("F", bound=Callable)
 
 DEFAULT_ADDRESS = "0.0.0.0:9443"
 DEFAULT_MAX_RECV_MESSAGE_SIZE = 4  # MB
+
+_UNIT_TO_SECONDS = {
+    "s": 1,
+    "m": 60,
+    "h": 3600,
+    "d": 86400,
+}
+_DURATION_COMPONENT_RE = re.compile(r"(\d+(?:\.\d+)?)([smhd])")
+
+
+def parse_duration(value: str) -> datetime.timedelta:
+    """Parse a duration string into a :class:`datetime.timedelta`.
+
+    Accepts Go-style duration strings (e.g. ``60s``, ``1m``, ``1h30m``) and bare
+    integers interpreted as seconds (e.g. ``60``).
+
+    Args:
+        value: The duration string to parse.
+
+    Returns:
+        The parsed duration.
+
+    Raises:
+        ValueError: If the string is empty, invalid, or negative.
+    """
+    value = value.strip()
+    if not value:
+        msg = "duration must not be empty"
+        raise ValueError(msg)
+
+    if value.isdigit():
+        return datetime.timedelta(seconds=int(value))
+
+    total_seconds = 0.0
+    pos = 0
+    for match in _DURATION_COMPONENT_RE.finditer(value):
+        if match.start() != pos:
+            msg = f"invalid duration: {value}"
+            raise ValueError(msg)
+        total_seconds += float(match.group(1)) * _UNIT_TO_SECONDS[match.group(2)]
+        pos = match.end()
+
+    if pos != len(value):
+        msg = f"invalid duration: {value}"
+        raise ValueError(msg)
+
+    if total_seconds < 0:
+        msg = "duration must not be negative"
+        raise ValueError(msg)
+
+    return datetime.timedelta(seconds=total_seconds)
+
+
+class DurationParamType(click.ParamType):
+    """A Click parameter type that parses duration strings."""
+
+    name = "duration"
+
+    def convert(
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
+    ) -> datetime.timedelta:
+        """Convert a CLI value to a :class:`datetime.timedelta`."""
+        if isinstance(value, datetime.timedelta):
+            return value
+        try:
+            return parse_duration(str(value))
+        except ValueError as e:
+            self.fail(str(e), param, ctx)
+
+
+DURATION = DurationParamType()
 
 
 def standard_options(func: F) -> F:
@@ -101,6 +182,16 @@ def standard_options(func: F) -> F:
         envvar="DEBUG",
         help="Emit debug logs.",
     )
+    @click.option(
+        "--ttl",
+        type=DURATION,
+        default=None,
+        show_default="1m",
+        envvar="TTL",
+        help="Default TTL for RunFunctionResponses. "
+        "Controls how long Crossplane may cache the response "
+        "before re-invoking the function.",
+    )
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -117,10 +208,14 @@ def run(  # noqa: PLR0913
     insecure: bool,
     max_recv_message_size: int,
     max_send_message_size: int | None,
+    ttl: datetime.timedelta | None,
 ) -> None:
     """Start a composition function gRPC server with standard options."""
     level = logging.Level.DEBUG if debug else logging.Level.INFO
     logging.configure(level=level)
+
+    if ttl is not None:
+        response.set_default_ttl(ttl)
 
     if max_send_message_size is None:
         max_send_message_size = max_recv_message_size
