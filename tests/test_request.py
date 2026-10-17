@@ -342,6 +342,147 @@ class TestRequest(unittest.TestCase):
             got = request.has_capability(case.req, case.cap)
             self.assertEqual(case.want, got, case.reason)
 
+    def test_missing_capabilities(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            caps: list[fnv1.Capability.ValueType]
+            want: list[fnv1.Capability.ValueType]
+
+        cases = [
+            TestCase(
+                reason="Should return nothing when no capabilities are required.",
+                req=fnv1.RunFunctionRequest(),
+                caps=[],
+                want=[],
+            ),
+            TestCase(
+                reason="Should return nothing when every capability is advertised.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                            fnv1.CAPABILITY_DEPENDENCIES,
+                        ],
+                    ),
+                ),
+                caps=[fnv1.CAPABILITY_DEPENDENCIES, fnv1.CAPABILITY_REQUIRED_SCHEMAS],
+                want=[],
+            ),
+            TestCase(
+                reason="Should return missing capabilities in order, once each.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                        ],
+                    ),
+                ),
+                caps=[
+                    fnv1.CAPABILITY_DEPENDENCIES,
+                    fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                    fnv1.CAPABILITY_CREDENTIALS,
+                    fnv1.CAPABILITY_DEPENDENCIES,
+                ],
+                want=[fnv1.CAPABILITY_DEPENDENCIES, fnv1.CAPABILITY_CREDENTIALS],
+            ),
+            TestCase(
+                reason="Should return every capability when none are advertised.",
+                req=fnv1.RunFunctionRequest(),
+                caps=[fnv1.CAPABILITY_DEPENDENCIES, fnv1.CAPABILITY_REQUIRED_SCHEMAS],
+                want=[fnv1.CAPABILITY_DEPENDENCIES, fnv1.CAPABILITY_REQUIRED_SCHEMAS],
+            ),
+        ]
+
+        for case in cases:
+            got = request.missing_capabilities(case.req, *case.caps)
+            self.assertEqual(case.want, got, case.reason)
+
+    def test_require_capabilities(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            caps: list[fnv1.Capability.ValueType]
+            want: bool
+            want_results: list[fnv1.Result]
+
+        cases = [
+            TestCase(
+                reason="Should pass when no capabilities are required, whatever "
+                "Crossplane advertises.",
+                req=fnv1.RunFunctionRequest(),
+                caps=[],
+                want=True,
+                want_results=[],
+            ),
+            TestCase(
+                reason="Should pass, adding no result, when all are advertised.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_DEPENDENCIES,
+                        ],
+                    ),
+                ),
+                caps=[fnv1.CAPABILITY_DEPENDENCIES],
+                want=True,
+                want_results=[],
+            ),
+            TestCase(
+                reason="Should fail with one fatal result naming every missing "
+                "capability.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(
+                        capabilities=[
+                            fnv1.CAPABILITY_CAPABILITIES,
+                            fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                        ],
+                    ),
+                ),
+                caps=[
+                    fnv1.CAPABILITY_DEPENDENCIES,
+                    fnv1.CAPABILITY_REQUIRED_SCHEMAS,
+                    fnv1.CAPABILITY_CREDENTIALS,
+                ],
+                want=False,
+                want_results=[
+                    fnv1.Result(
+                        severity=fnv1.SEVERITY_FATAL,
+                        message="This function requires Crossplane capabilities that "
+                        "Crossplane doesn't advertise: CAPABILITY_DEPENDENCIES, "
+                        "CAPABILITY_CREDENTIALS.",
+                    ),
+                ],
+            ),
+            TestCase(
+                reason="Should say Crossplane predates capability advertisement when "
+                "it advertises none.",
+                req=fnv1.RunFunctionRequest(),
+                caps=[fnv1.CAPABILITY_DEPENDENCIES],
+                want=False,
+                want_results=[
+                    fnv1.Result(
+                        severity=fnv1.SEVERITY_FATAL,
+                        message="This function requires Crossplane capabilities that "
+                        "Crossplane doesn't advertise: CAPABILITY_DEPENDENCIES. "
+                        "Crossplane doesn't advertise any capabilities, so it predates "
+                        "capability advertisement (v2.2).",
+                    ),
+                ],
+            ),
+        ]
+
+        for case in cases:
+            rsp = fnv1.RunFunctionResponse()
+            got = request.require_capabilities(case.req, rsp, *case.caps)
+            self.assertEqual(case.want, got, case.reason)
+            self.assertEqual(case.want_results, list(rsp.results), case.reason)
+
     def test_get_required_schema(self) -> None:
         @dataclasses.dataclass
         class TestCase:
@@ -405,6 +546,52 @@ class TestRequest(unittest.TestCase):
 
         for case in cases:
             got = request.get_required_schema(case.req, case.name)
+            self.assertEqual(case.want, got, case.reason)
+
+    def test_get_dependencies(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            req: fnv1.RunFunctionRequest
+            want: list[fnv1.Dependency]
+
+        cases = [
+            TestCase(
+                reason="No dependencies should return an empty list.",
+                req=fnv1.RunFunctionRequest(),
+                want=[],
+            ),
+            TestCase(
+                reason="Should return the dependencies accumulated so far.",
+                req=fnv1.RunFunctionRequest(
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database", composed_resource="network"
+                            ),
+                            fnv1.Dependency(
+                                resource="database",
+                                required_resource=fnv1.RequiredResourceDependency(
+                                    requirement_name="cluster"
+                                ),
+                            ),
+                        ]
+                    )
+                ),
+                want=[
+                    fnv1.Dependency(resource="database", composed_resource="network"),
+                    fnv1.Dependency(
+                        resource="database",
+                        required_resource=fnv1.RequiredResourceDependency(
+                            requirement_name="cluster"
+                        ),
+                    ),
+                ],
+            ),
+        ]
+
+        for case in cases:
+            got = request.get_dependencies(case.req)
             self.assertEqual(case.want, got, case.reason)
 
 

@@ -58,8 +58,15 @@ def to(
     Returns:
         A response to the supplied request.
 
-    The request's tag, desired resources, and context is automatically copied to
-    the response. Using response.to is a good pattern to ensure
+    The request's tag, desired resources, context, and dependencies are
+    automatically copied to the response. Using response.to is a good pattern
+    to ensure
+
+    Dependencies are copied only if the request has them. An unset
+    Dependencies means "no opinion" and tells Crossplane to carry forward the
+    constraints it already has, while an empty one tells Crossplane to drop
+    them. Copying an unset field as an empty one would turn the former into
+    the latter.
     """
     if ttl is None:
         ttl = get_default_ttl()
@@ -70,6 +77,7 @@ def to(
         meta=fnv1.ResponseMeta(tag=req.meta.tag, ttl=dttl),
         desired=req.desired,
         context=req.context,
+        dependencies=req.dependencies if req.HasField("dependencies") else None,
     )
 
 
@@ -241,3 +249,108 @@ def require_schema(
         kind=kind,
     )
     rsp.requirements.schemas[name].CopyFrom(selector)
+
+
+def clear_dependencies(rsp: fnv1.RunFunctionResponse) -> None:
+    """Declare that no composed resources should be ordered.
+
+    Args:
+        rsp: The RunFunctionResponse to update.
+
+    This returns an empty set of dependencies, which tells Crossplane to drop
+    the constraints declared by the functions before this one. It's different
+    from leaving dependencies unset, which means "no opinion" and carries the
+    existing constraints forward.
+
+    Note that response.to copies the request's dependencies to the response.
+    Call this on a response it created to drop them.
+    """
+    rsp.dependencies.Clear()
+    rsp.dependencies.SetInParent()
+
+
+def add_dependency(
+    rsp: fnv1.RunFunctionResponse,
+    resource_name: str,
+    depends_on: str,
+    *,
+    create_before_destroy: bool = False,
+) -> None:
+    """Declare that one composed resource depends on another.
+
+    Args:
+        rsp: The RunFunctionResponse to update.
+        resource_name: Name of the composed resource that has the dependency. A key
+            into the desired or observed state's resources.
+        depends_on: Name of the composed resource it depends on. Also a key
+            into the desired or observed state's resources.
+        create_before_destroy: Let the resource be created without waiting for
+            what it depends on to be deleted. Use for a replacement that must
+            exist before its predecessor is torn down.
+
+    By default ordering is symmetric: the resource is created only once what
+    it depends on is ready, and what it depends on is deleted only once the
+    resource is gone.
+
+    Dependencies express ordering only. They don't move any data between
+    resources.
+
+    Remember that a function must return the full set of dependencies it
+    wants. response.to copies forward the ones the request carried, so build
+    on a response created by it rather than an empty one.
+
+    Only Crossplane versions that advertise CAPABILITY_DEPENDENCIES honor
+    dependencies. Use request.has_capability to check before relying on them:
+
+        if request.has_capability(req, fnv1.CAPABILITY_DEPENDENCIES):
+            response.add_dependency(rsp, "database", "network")
+    """
+    lifecycle = (
+        fnv1.DEPENDENCY_LIFECYCLE_CREATE_BEFORE_DESTROY
+        if create_before_destroy
+        else fnv1.DEPENDENCY_LIFECYCLE_UNSPECIFIED
+    )
+    rsp.dependencies.items.append(
+        fnv1.Dependency(
+            resource=resource_name,
+            composed_resource=depends_on,
+            lifecycle=lifecycle,
+        )
+    )
+
+
+def add_required_resource_dependency(
+    rsp: fnv1.RunFunctionResponse,
+    resource_name: str,
+    requirement_name: str,
+    *,
+    name: str | None = None,
+    namespace: str | None = None,
+) -> None:
+    """Declare that a composed resource depends on a required resource.
+
+    Args:
+        rsp: The RunFunctionResponse to update.
+        resource_name: Name of the composed resource that has the dependency. A key
+            into the desired or observed state's resources.
+        requirement_name: The requirement name, as passed to require_resources.
+        name: Name of a single resource within the set the requirement
+            matched. If unset, every matched resource must be ready.
+        namespace: Namespace of name, for a namespaced resource. Leave unset
+            for a cluster scoped resource.
+
+    Crossplane never deletes a resource it didn't compose, so a dependency on
+    a required resource constrains only the order resources are created and
+    updated, never the order they're deleted.
+    """
+    required = fnv1.RequiredResourceDependency(requirement_name=requirement_name)
+
+    if name is not None:
+        required.name = name
+
+    if namespace is not None:
+        required.namespace = namespace
+
+    rsp.dependencies.items.append(
+        fnv1.Dependency(resource=resource_name, required_resource=required)
+    )
