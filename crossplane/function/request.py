@@ -17,7 +17,7 @@
 import dataclasses
 
 import crossplane.function.proto.v1.run_function_pb2 as fnv1
-from crossplane.function import resource
+from crossplane.function import resource, response
 
 
 @dataclasses.dataclass
@@ -183,6 +183,79 @@ def has_capability(
     return cap in req.meta.capabilities
 
 
+def missing_capabilities(
+    req: fnv1.RunFunctionRequest,
+    *caps: fnv1.Capability.ValueType,
+) -> list[fnv1.Capability.ValueType]:
+    """Find the capabilities Crossplane doesn't advertise.
+
+    Args:
+        req: The RunFunctionRequest to check.
+        *caps: The capabilities to check for, e.g. fnv1.CAPABILITY_DEPENDENCIES.
+
+    Returns:
+        The capabilities in caps that aren't present in the request metadata,
+        in the order given and without duplicates. Empty if all are present.
+
+    If Crossplane doesn't advertise its capabilities at all, every capability
+    is missing. See advertises_capabilities.
+
+        missing = request.missing_capabilities(req, fnv1.CAPABILITY_DEPENDENCIES)
+    """
+    missing: list[fnv1.Capability.ValueType] = []
+    for cap in caps:
+        if not has_capability(req, cap) and cap not in missing:
+            missing.append(cap)
+    return missing
+
+
+def require_capabilities(
+    req: fnv1.RunFunctionRequest,
+    rsp: fnv1.RunFunctionResponse,
+    *caps: fnv1.Capability.ValueType,
+) -> bool:
+    """Require that Crossplane advertises the supplied capabilities.
+
+    Args:
+        req: The RunFunctionRequest to check.
+        rsp: The RunFunctionResponse to add a fatal result to.
+        *caps: The capabilities the function requires.
+
+    Returns:
+        True if Crossplane advertises every capability in caps. Otherwise
+        False, with one fatal result added to rsp naming every missing
+        capability.
+
+    Use this when a function can't work correctly without a capability -
+    for example because it relies on Crossplane honoring a response field
+    that an older Crossplane would ignore. A fatal result stops the pipeline,
+    which is easier to diagnose than a composition that silently behaves
+    differently.
+
+    A Crossplane that predates capability advertisement (v2.2) has none of
+    them as far as the function can tell, so every capability is missing and
+    the fatal result says so.
+
+        if not request.require_capabilities(req, rsp, fnv1.CAPABILITY_DEPENDENCIES):
+            return rsp
+    """
+    missing = missing_capabilities(req, *caps)
+    if not missing:
+        return True
+
+    msg = (
+        "This function requires Crossplane capabilities that Crossplane doesn't "
+        f"advertise: {', '.join(fnv1.Capability.Name(cap) for cap in missing)}."
+    )
+    if not advertises_capabilities(req):
+        msg += (
+            " Crossplane doesn't advertise any capabilities, so it predates"
+            " capability advertisement (v2.2)."
+        )
+    response.fatal(rsp, msg)
+    return False
+
+
 def get_required_schema(req: fnv1.RunFunctionRequest, name: str) -> dict | None:
     """Get a required OpenAPI schema by name from the request.
 
@@ -224,3 +297,27 @@ def get_required_schema(req: fnv1.RunFunctionRequest, name: str) -> dict | None:
         return None
 
     return resource.struct_to_dict(schema.openapi_v3)
+
+
+def get_dependencies(req: fnv1.RunFunctionRequest) -> list[fnv1.Dependency]:
+    """Get the ordering constraints accumulated so far in the pipeline.
+
+    Args:
+        req: The RunFunctionRequest containing dependencies.
+
+    Returns:
+        The dependencies returned by the functions that ran before this one.
+
+    A dependency declares that one composed resource must be created after,
+    and deleted before, another resource. It expresses ordering only - it
+    doesn't move any data between resources.
+
+    A function that has an opinion about ordering must return the full set it
+    wants going forward, including the edges it received here and still wants.
+    response.to copies them to the response for you, so most functions can
+    just add to them:
+
+        rsp = response.to(req)
+        response.add_dependency(rsp, "database", "network")
+    """
+    return list(req.dependencies.items)

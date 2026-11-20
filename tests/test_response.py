@@ -98,10 +98,75 @@ class TestResponse(unittest.TestCase):
                     context=resource.dict_to_struct({"cool-key": "cool-value"}),
                 ),
             ),
+            TestCase(
+                reason="Dependencies should be copied.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(tag="hi"),
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database", composed_resource="network"
+                            ),
+                        ]
+                    ),
+                ),
+                ttl=datetime.timedelta(minutes=10),
+                want=fnv1.RunFunctionResponse(
+                    meta=fnv1.ResponseMeta(
+                        tag="hi", ttl=durationpb.Duration(seconds=60 * 10)
+                    ),
+                    desired=fnv1.State(),
+                    context=structpb.Struct(),
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database", composed_resource="network"
+                            ),
+                        ]
+                    ),
+                ),
+            ),
+            TestCase(
+                reason="Unset dependencies should stay unset, not become empty.",
+                req=fnv1.RunFunctionRequest(meta=fnv1.RequestMeta(tag="hi")),
+                ttl=datetime.timedelta(minutes=10),
+                want=fnv1.RunFunctionResponse(
+                    meta=fnv1.ResponseMeta(
+                        tag="hi", ttl=durationpb.Duration(seconds=60 * 10)
+                    ),
+                    desired=fnv1.State(),
+                    context=structpb.Struct(),
+                ),
+            ),
+            TestCase(
+                reason="Empty dependencies should stay empty, not become unset.",
+                req=fnv1.RunFunctionRequest(
+                    meta=fnv1.RequestMeta(tag="hi"),
+                    dependencies=fnv1.Dependencies(),
+                ),
+                ttl=datetime.timedelta(minutes=10),
+                want=fnv1.RunFunctionResponse(
+                    meta=fnv1.ResponseMeta(
+                        tag="hi", ttl=durationpb.Duration(seconds=60 * 10)
+                    ),
+                    desired=fnv1.State(),
+                    context=structpb.Struct(),
+                    dependencies=fnv1.Dependencies(),
+                ),
+            ),
         ]
 
         for case in cases:
             got = response.to(case.req, case.ttl)
+
+            # An unset Dependencies means "no opinion". An empty one means
+            # "no constraints at all". They must not be confused.
+            self.assertEqual(
+                case.want.HasField("dependencies"),
+                got.HasField("dependencies"),
+                case.reason,
+            )
+
             self.assertEqual(
                 json_format.MessageToJson(case.want, sort_keys=True),
                 json_format.MessageToJson(got, sort_keys=True),
@@ -372,6 +437,153 @@ class TestResponse(unittest.TestCase):
             self.assertEqual(
                 json_format.MessageToJson(case.want_selector, sort_keys=True),
                 json_format.MessageToJson(got_selector, sort_keys=True),
+                case.reason,
+            )
+
+    def test_dependencies(self) -> None:
+        @dataclasses.dataclass
+        class TestCase:
+            reason: str
+            rsp: fnv1.RunFunctionResponse
+            mutate: object
+            want: fnv1.RunFunctionResponse
+
+        def no_opinion(_rsp) -> None:
+            pass
+
+        def add_composed(rsp) -> None:
+            response.add_dependency(rsp, "database", "network")
+
+        def add_replacement(rsp) -> None:
+            response.add_dependency(
+                rsp, "database-v2", "database", create_before_destroy=True
+            )
+
+        def add_required(rsp) -> None:
+            response.add_required_resource_dependency(
+                rsp, "database", "cluster", name="prod", namespace="default"
+            )
+
+        def add_required_set(rsp) -> None:
+            response.add_required_resource_dependency(rsp, "database", "cluster")
+
+        def add_to_existing(rsp) -> None:
+            response.add_dependency(rsp, "cache", "database")
+
+        def clear(rsp) -> None:
+            response.clear_dependencies(rsp)
+
+        existing = fnv1.Dependency(resource="database", composed_resource="network")
+
+        cases = [
+            TestCase(
+                reason="A response should have no opinion about ordering by default.",
+                rsp=fnv1.RunFunctionResponse(),
+                mutate=no_opinion,
+                want=fnv1.RunFunctionResponse(),
+            ),
+            TestCase(
+                reason="Should add a dependency on another composed resource.",
+                rsp=fnv1.RunFunctionResponse(),
+                mutate=add_composed,
+                want=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(items=[existing])
+                ),
+            ),
+            TestCase(
+                reason="Should add a create before destroy dependency.",
+                rsp=fnv1.RunFunctionResponse(),
+                mutate=add_replacement,
+                want=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database-v2",
+                                composed_resource="database",
+                                lifecycle=fnv1.DEPENDENCY_LIFECYCLE_CREATE_BEFORE_DESTROY,
+                            )
+                        ]
+                    )
+                ),
+            ),
+            TestCase(
+                reason="Should add a dependency on one required resource.",
+                rsp=fnv1.RunFunctionResponse(),
+                mutate=add_required,
+                want=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database",
+                                required_resource=fnv1.RequiredResourceDependency(
+                                    requirement_name="cluster",
+                                    name="prod",
+                                    namespace="default",
+                                ),
+                            )
+                        ]
+                    )
+                ),
+            ),
+            TestCase(
+                reason="Should add a dependency on every matched required resource.",
+                rsp=fnv1.RunFunctionResponse(),
+                mutate=add_required_set,
+                want=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            fnv1.Dependency(
+                                resource="database",
+                                required_resource=fnv1.RequiredResourceDependency(
+                                    requirement_name="cluster"
+                                ),
+                            )
+                        ]
+                    )
+                ),
+            ),
+            TestCase(
+                reason="Should add to the dependencies already on the response.",
+                rsp=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(items=[existing])
+                ),
+                mutate=add_to_existing,
+                want=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(
+                        items=[
+                            existing,
+                            fnv1.Dependency(
+                                resource="cache", composed_resource="database"
+                            ),
+                        ]
+                    )
+                ),
+            ),
+            TestCase(
+                reason="Clearing should return an empty set, not an unset one.",
+                rsp=fnv1.RunFunctionResponse(
+                    dependencies=fnv1.Dependencies(items=[existing])
+                ),
+                mutate=clear,
+                want=fnv1.RunFunctionResponse(dependencies=fnv1.Dependencies()),
+            ),
+        ]
+
+        for case in cases:
+            got = case.rsp
+            case.mutate(got)
+
+            self.assertEqual(
+                json_format.MessageToJson(case.want, sort_keys=True),
+                json_format.MessageToJson(got, sort_keys=True),
+                case.reason,
+            )
+
+            # An unset Dependencies means "no opinion". An empty one means
+            # "no constraints at all". They must not be confused.
+            self.assertEqual(
+                case.want.HasField("dependencies"),
+                got.HasField("dependencies"),
                 case.reason,
             )
 

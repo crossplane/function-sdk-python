@@ -11,6 +11,11 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class DependencyLifecycle(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    DEPENDENCY_LIFECYCLE_UNSPECIFIED: _ClassVar[DependencyLifecycle]
+    DEPENDENCY_LIFECYCLE_CREATE_BEFORE_DESTROY: _ClassVar[DependencyLifecycle]
+
 class Capability(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     CAPABILITY_UNSPECIFIED: _ClassVar[Capability]
@@ -19,6 +24,7 @@ class Capability(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CAPABILITY_CREDENTIALS: _ClassVar[Capability]
     CAPABILITY_CONDITIONS: _ClassVar[Capability]
     CAPABILITY_REQUIRED_SCHEMAS: _ClassVar[Capability]
+    CAPABILITY_DEPENDENCIES: _ClassVar[Capability]
 
 class Ready(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -45,12 +51,15 @@ class Status(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     STATUS_CONDITION_UNKNOWN: _ClassVar[Status]
     STATUS_CONDITION_TRUE: _ClassVar[Status]
     STATUS_CONDITION_FALSE: _ClassVar[Status]
+DEPENDENCY_LIFECYCLE_UNSPECIFIED: DependencyLifecycle
+DEPENDENCY_LIFECYCLE_CREATE_BEFORE_DESTROY: DependencyLifecycle
 CAPABILITY_UNSPECIFIED: Capability
 CAPABILITY_CAPABILITIES: Capability
 CAPABILITY_REQUIRED_RESOURCES: Capability
 CAPABILITY_CREDENTIALS: Capability
 CAPABILITY_CONDITIONS: Capability
 CAPABILITY_REQUIRED_SCHEMAS: Capability
+CAPABILITY_DEPENDENCIES: Capability
 READY_UNSPECIFIED: Ready
 READY_TRUE: Ready
 READY_FALSE: Ready
@@ -67,7 +76,7 @@ STATUS_CONDITION_TRUE: Status
 STATUS_CONDITION_FALSE: Status
 
 class RunFunctionRequest(_message.Message):
-    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials", "required_resources", "required_schemas")
+    __slots__ = ("meta", "observed", "desired", "input", "context", "extra_resources", "credentials", "required_resources", "required_schemas", "dependencies")
     class ExtraResourcesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -105,6 +114,7 @@ class RunFunctionRequest(_message.Message):
     CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_RESOURCES_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     meta: RequestMeta
     observed: State
     desired: State
@@ -114,7 +124,8 @@ class RunFunctionRequest(_message.Message):
     credentials: _containers.MessageMap[str, Credentials]
     required_resources: _containers.MessageMap[str, Resources]
     required_schemas: _containers.MessageMap[str, Schema]
-    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ..., required_schemas: _Optional[_Mapping[str, Schema]] = ...) -> None: ...
+    dependencies: Dependencies
+    def __init__(self, meta: _Optional[_Union[RequestMeta, _Mapping]] = ..., observed: _Optional[_Union[State, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., input: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., extra_resources: _Optional[_Mapping[str, Resources]] = ..., credentials: _Optional[_Mapping[str, Credentials]] = ..., required_resources: _Optional[_Mapping[str, Resources]] = ..., required_schemas: _Optional[_Mapping[str, Schema]] = ..., dependencies: _Optional[_Union[Dependencies, _Mapping]] = ...) -> None: ...
 
 class Credentials(_message.Message):
     __slots__ = ("credential_data",)
@@ -141,8 +152,36 @@ class Resources(_message.Message):
     items: _containers.RepeatedCompositeFieldContainer[Resource]
     def __init__(self, items: _Optional[_Iterable[_Union[Resource, _Mapping]]] = ...) -> None: ...
 
+class Dependencies(_message.Message):
+    __slots__ = ("items",)
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    items: _containers.RepeatedCompositeFieldContainer[Dependency]
+    def __init__(self, items: _Optional[_Iterable[_Union[Dependency, _Mapping]]] = ...) -> None: ...
+
+class Dependency(_message.Message):
+    __slots__ = ("resource", "composed_resource", "required_resource", "lifecycle")
+    RESOURCE_FIELD_NUMBER: _ClassVar[int]
+    COMPOSED_RESOURCE_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_RESOURCE_FIELD_NUMBER: _ClassVar[int]
+    LIFECYCLE_FIELD_NUMBER: _ClassVar[int]
+    resource: str
+    composed_resource: str
+    required_resource: RequiredResourceDependency
+    lifecycle: DependencyLifecycle
+    def __init__(self, resource: _Optional[str] = ..., composed_resource: _Optional[str] = ..., required_resource: _Optional[_Union[RequiredResourceDependency, _Mapping]] = ..., lifecycle: _Optional[_Union[DependencyLifecycle, str]] = ...) -> None: ...
+
+class RequiredResourceDependency(_message.Message):
+    __slots__ = ("requirement_name", "name", "namespace")
+    REQUIREMENT_NAME_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    requirement_name: str
+    name: str
+    namespace: str
+    def __init__(self, requirement_name: _Optional[str] = ..., name: _Optional[str] = ..., namespace: _Optional[str] = ...) -> None: ...
+
 class RunFunctionResponse(_message.Message):
-    __slots__ = ("meta", "desired", "results", "context", "requirements", "conditions", "output")
+    __slots__ = ("meta", "desired", "results", "context", "requirements", "conditions", "output", "dependencies")
     META_FIELD_NUMBER: _ClassVar[int]
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     RESULTS_FIELD_NUMBER: _ClassVar[int]
@@ -150,6 +189,7 @@ class RunFunctionResponse(_message.Message):
     REQUIREMENTS_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     meta: ResponseMeta
     desired: State
     results: _containers.RepeatedCompositeFieldContainer[Result]
@@ -157,7 +197,8 @@ class RunFunctionResponse(_message.Message):
     requirements: Requirements
     conditions: _containers.RepeatedCompositeFieldContainer[Condition]
     output: _struct_pb2.Struct
-    def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ..., output: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    dependencies: Dependencies
+    def __init__(self, meta: _Optional[_Union[ResponseMeta, _Mapping]] = ..., desired: _Optional[_Union[State, _Mapping]] = ..., results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ..., context: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., requirements: _Optional[_Union[Requirements, _Mapping]] = ..., conditions: _Optional[_Iterable[_Union[Condition, _Mapping]]] = ..., output: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., dependencies: _Optional[_Union[Dependencies, _Mapping]] = ...) -> None: ...
 
 class RequestMeta(_message.Message):
     __slots__ = ("tag", "capabilities")
